@@ -1,36 +1,204 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Inventario GM
 
-## Getting Started
+Sistema web de gestión de inventario desarrollado para la administración de materiales de construcción, maquinaria y productos relacionados con proyectos de obra civil.
 
-First, run the development server:
+---
+
+## Descripción
+
+Inventario GM es una aplicación web construida con Next.js y Supabase que permite administrar diferentes categorías de productos, consultar inventario, visualizar maquinaria disponible y centralizar información operativa de la empresa.
+
+La plataforma fue diseñada para ofrecer una experiencia rápida, moderna y adaptable a dispositivos móviles, además de funcionar como una Progressive Web App (PWA).
+
+---
+
+## Características Principales
+
+### Gestión de Inventario
+
+- Consulta de existencias.
+- Organización por categorías.
+- Búsqueda rápida de productos.
+- Visualización de stock.
+
+### Catálogo de Productos
+
+- Aceros.
+- Agregados.
+- Polvos para construcción.
+- Block y prefabricados.
+- Material eléctrico.
+- Productos de concretera.
+
+### Maquinaria
+
+- Catálogo de maquinaria pesada.
+- Fichas técnicas en PDF.
+- Información detallada de equipos.
+- Consulta rápida de especificaciones.
+
+### ERP Interno
+
+- Panel administrativo.
+- Gestión de inventario.
+- Administración de registros.
+- Actualización de productos.
+
+### Experiencia de Usuario
+
+- Diseño responsive.
+- Animaciones fluidas.
+- Instalación como aplicación móvil (PWA).
+- Navegación optimizada.
+
+---
+
+## Tecnologías Utilizadas
+
+### Frontend
+
+- Next.js 15
+- React 19
+- TypeScript
+- Tailwind CSS 4
+- Framer Motion
+- React Icons
+- Lucide React
+- Swiper
+
+### Backend y Base de Datos
+
+- Supabase
+- API Routes de Next.js
+
+### Despliegue
+
+- Vercel
+
+---
+
+## Capturas del Sistema
+
+### Página Principal
+
+![Página Principal](./public/images/home.png)
+
+### Inventario
+
+![Inventario](./public/images/inventario.png)
+
+### Maquinaria
+
+![Maquinaria](./public/images/maquinaria.png)
+
+### Productos
+
+![Productos](./public/images/productos.png)
+
+### Panel Administrativo
+
+![Panel Administrativo](./public/images/admin.png)
+
+> Reemplaza las rutas anteriores por las capturas reales que subas al repositorio.
+
+---
+
+## Estructura del Proyecto
+
+```text
+app/
+├── admin/
+│   ├── aceros/
+│   ├── agregados/
+│   ├── block/
+│   ├── concretera/
+│   ├── electricidad/
+│   ├── maquinaria/
+│   └── productos/
+│
+├── api/
+│   └── maquinaria/
+│
+├── erp/
+│   └── inventario/
+│
+├── components/
+│
+└── lib/
+    └── supabase.ts
+```
+
+---
+
+## Instalación
+
+Clonar el repositorio:
+
+```bash
+git clone https://github.com/1224100685lojg-web/inventario-gm.git
+```
+
+Entrar al proyecto:
+
+```bash
+cd inventario-gm
+```
+
+Instalar dependencias:
+
+```bash
+npm install
+```
+
+Crear archivo `.env.local`:
+
+```env
+NEXT_PUBLIC_SUPABASE_URL=tu_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=tu_clave
+```
+
+Ejecutar en desarrollo:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Abrir en el navegador:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```text
+http://localhost:3000
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+---
 
-## Learn More
+## Construcción para Producción
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+npm run build
+npm run start
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+---
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Funcionalidades Destacadas
 
-## Deploy on Vercel
+- Gestión centralizada de inventario.
+- Consulta de maquinaria y fichas técnicas.
+- Organización por categorías de materiales.
+- Integración con Supabase.
+- Aplicación web progresiva (PWA).
+- Interfaz moderna y optimizada.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+---
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Despliegue
+
+La aplicación se encuentra desplegada en Vercel para garantizar rendimiento, disponibilidad y actualizaciones continuas.
+
+---
+
+## Autor
+
+Desarrollado por GM para la administración de inventario, maquinaria y materiales de construcción.
+
+© 2026 GM. Todos los derechos reservados.
