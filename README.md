@@ -1,27 +1,34 @@
-# Inventario GM
+#  Inventario GM
 
-Sistema web de gestión de inventario desarrollado para la administración de materiales de construcción, maquinaria y productos relacionados con proyectos de obra civil.
+> Sistema web para la gestión de inventario, maquinaria y materiales de construcción.
+
+![Next.js](https://img.shields.io/badge/Next.js-15-black)
+![React](https://img.shields.io/badge/React-19-blue)
+![TypeScript](https://img.shields.io/badge/TypeScript-5-blue)
+![TailwindCSS](https://img.shields.io/badge/TailwindCSS-4-38BDF8)
+![Supabase](https://img.shields.io/badge/Supabase-Backend-3ECF8E)
+![Vercel](https://img.shields.io/badge/Vercel-Deployed-black)
 
 ---
 
-## Descripción
+## 📋 Descripción
 
-Inventario GM es una aplicación web construida con Next.js y Supabase que permite administrar diferentes categorías de productos, consultar inventario, visualizar maquinaria disponible y centralizar información operativa de la empresa.
+**Inventario GM** es una plataforma web desarrollada para la administración de materiales de construcción, maquinaria y productos relacionados con proyectos de obra civil.
 
-La plataforma fue diseñada para ofrecer una experiencia rápida, moderna y adaptable a dispositivos móviles, además de funcionar como una Progressive Web App (PWA).
+La aplicación permite consultar inventario, gestionar productos, visualizar maquinaria y centralizar información operativa mediante una interfaz moderna, rápida y adaptable a dispositivos móviles.
 
 ---
 
-## Características Principales
+## ✨ Características Principales
 
-### Gestión de Inventario
+### 📦 Gestión de Inventario
 
 - Consulta de existencias.
 - Organización por categorías.
 - Búsqueda rápida de productos.
-- Visualización de stock.
+- Visualización de stock disponible.
 
-### Catálogo de Productos
+### 🧱 Catálogo de Productos
 
 - Aceros.
 - Agregados.
@@ -30,30 +37,30 @@ La plataforma fue diseñada para ofrecer una experiencia rápida, moderna y adap
 - Material eléctrico.
 - Productos de concretera.
 
-### Maquinaria
+### 🚜 Maquinaria
 
 - Catálogo de maquinaria pesada.
 - Fichas técnicas en PDF.
 - Información detallada de equipos.
 - Consulta rápida de especificaciones.
 
-### ERP Interno
+### ⚙️ ERP Interno
 
 - Panel administrativo.
 - Gestión de inventario.
 - Administración de registros.
 - Actualización de productos.
 
-### Experiencia de Usuario
+### 📱 Experiencia de Usuario
 
 - Diseño responsive.
-- Animaciones fluidas.
-- Instalación como aplicación móvil (PWA).
 - Navegación optimizada.
+- Instalación como aplicación móvil (PWA).
+- Animaciones fluidas.
 
 ---
 
-## Tecnologías Utilizadas
+## 🛠️ Tecnologías Utilizadas
 
 ### Frontend
 
@@ -77,33 +84,31 @@ La plataforma fue diseñada para ofrecer una experiencia rápida, moderna y adap
 
 ---
 
-## Capturas del Sistema
+## 📸 Capturas del Sistema
 
-### Página Principal
+### 🏠 Página Principal
 
 ![Página Principal](./public/images/home.png)
 
-### Inventario
+### 📊 Inventario
 
 ![Inventario](./public/images/inventario.png)
 
-### Maquinaria
+### 🚜 Maquinaria
 
 ![Maquinaria](./public/images/maquinaria.png)
 
-### Productos
+### 📦 Productos
 
 ![Productos](./public/images/productos.png)
 
-### Panel Administrativo
+### ⚙️ Panel Administrativo
 
 ![Panel Administrativo](./public/images/admin.png)
 
-> Reemplaza las rutas anteriores por las capturas reales que subas al repositorio.
-
 ---
 
-## Estructura del Proyecto
+## 📂 Estructura del Proyecto
 
 ```text
 app/
@@ -126,8 +131,8 @@ app/
 │
 └── lib/
     └── supabase.ts
-```
 
+```
 ---
 
 ## Instalación
@@ -166,7 +171,7 @@ npm run dev
 Abrir en el navegador:
 
 ```text
-http://localhost:3000
+https://grupo-gm-one.vercel.app/
 ```
 
 ---
@@ -180,7 +185,7 @@ npm run start
 
 ---
 
-## Funcionalidades Destacadas
+## 🛠️ Funcionalidades Destacadas
 
 - Gestión centralizada de inventario.
 - Consulta de maquinaria y fichas técnicas.
@@ -191,7 +196,7 @@ npm run start
 
 ---
 
-## Despliegue
+## ✨ Despliegue
 
 La aplicación se encuentra desplegada en Vercel para garantizar rendimiento, disponibilidad y actualizaciones continuas.
 
@@ -199,6 +204,4 @@ La aplicación se encuentra desplegada en Vercel para garantizar rendimiento, di
 
 ## Autor
 
-Desarrollado por GM para la administración de inventario, maquinaria y materiales de construcción.
-
-© 2026 GM. Todos los derechos reservados.
+Luis Owen Jaramillo Guerrero
