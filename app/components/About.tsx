@@ -1,37 +1,58 @@
+"use client";
+
+import { useEffect, useState } from "react";
+
+import {
+  FaFacebookF,
+  FaInstagram,
+  FaWhatsapp,
+} from "react-icons/fa";
+
 export default function About() {
   return (
-    <section id="nosotros" className="py-24 bg-white">
-      <div className="max-w-6xl mx-auto px-6 grid md:grid-cols-2 gap-12 items-center">
+    <section id="nosotros" className="py-20 bg-black">
+      <div className="max-w-4xl mx-auto px-6 text-center">
 
-        {/* Texto */}
-        <div>
-          <p className="text-sky-600 font-medium">Quiénes somos</p>
+        {/* Título opcional */}
+        <h2 className="text-2xl md:text-3xl font-bold text-white">
+          Nuestras redes sociales
+        </h2>
 
-          <h2 className="text-3xl md:text-4xl font-bold mt-3 text-gray-900">
-            Especialistas
-          </h2>
+        <p className="text-white/60 mt-3">
+          En contacto con nosotros
+        </p>
 
-          <p className="text-gray-600 mt-6 leading-relaxed">
-            Somos una empresa dedicada a la venta
-          </p>
+        {/* Redes */}
+        <div className="flex justify-center gap-6 mt-10">
 
-          <p className="text-gray-600 mt-4 leading-relaxed">
-            Nuestro objetivo es garantizar
-          </p>
-        </div>
 
-        {/* Tarjeta visual */}
-        <div className="bg-gradient-to-br from-sky-50 to-white border border-gray-200 rounded-2xl p-10 shadow-sm">
-          <h3 className="text-xl font-semibold text-gray-900">
-            Compromiso
-          </h3>
+        <a
+          href="https://wa.me/524181826245"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="w-14 h-14 rounded-full border border-white/30 flex items-center justify-center text-white hover:bg-white hover:text-black transition"
+        >
+          <FaWhatsapp size={24} />
+        </a>
 
-          <ul className="mt-6 space-y-4 text-gray-600">
-            <li>✔ Instalaciones profesionales</li>
-            <li>✔ Equipos de alta eficiencia</li>
-            <li>✔ Mantenimiento confiable</li>
-            <li>✔ Atención personalizada</li>
-          </ul>
+          <a
+            href="https://www.instagram.com/copuprisa"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="w-14 h-14 rounded-full border border-white/30 flex items-center justify-center text-white hover:bg-white hover:text-black transition"
+          >
+            <FaInstagram size={24} />
+          </a>
+
+          <a
+            href="https://www.facebook.com/share/1D89zrbozT/?mibextid=wwXIfr"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="w-14 h-14 rounded-full border border-white/30 flex items-center justify-center text-white hover:bg-white hover:text-black transition"
+          >
+            <FaFacebookF size={22} />
+          </a>
+
         </div>
 
       </div>

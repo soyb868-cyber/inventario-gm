@@ -7,3 +7,21 @@ export const supabase = createClient(
   supabaseUrl,
   supabaseKey
 );
+
+export async function searchProducts(query: string) {
+  const { data, error } = await supabase
+    .from("productos")
+    .select("id, nombre, slug, marca, pagina")
+    .ilike("nombre", `%${query}%`)
+    .not("slug", "is", null)
+    .limit(8);
+
+  if (error) {
+    console.error("Error buscando productos:", error);
+    return [];
+  }
+
+  return (data || []).filter(
+    (p) => p.slug && p.slug.trim() !== ""
+  );
+}

@@ -59,6 +59,9 @@ export default function BlockPage() {
   const [guardando, setGuardando] =
     useState(false);
 
+    const [subiendoImagen, setSubiendoImagen] =
+  useState(false);
+
   /* ---------------- LOAD ---------------- */
 
   useEffect(() => {
@@ -80,6 +83,7 @@ export default function BlockPage() {
         await supabase
           .from("tarifas_distancia")
           .select("*");
+          
 
       const productosFormateados =
         (productosData || []).map(
@@ -142,6 +146,18 @@ export default function BlockPage() {
     );
   };
 
+  const editarCampo = (
+  campo: keyof Producto,
+  valor: string
+) => {
+  if (!productoActivo) return;
+
+  actualizarLocal({
+    ...productoActivo,
+    [campo]: valor,
+  });
+};
+
   /* ---------------- GUARDAR ---------------- */
 
   const guardarCambios = async () => {
@@ -151,13 +167,16 @@ export default function BlockPage() {
       setGuardando(true);
 
       /* UPDATE BASE */
-      await supabase
-        .from("productos")
-        .update({
-          precio_base:
-            productoActivo.precios.base,
-        })
-        .eq("id", productoActivo.id);
+await supabase
+  .from("productos")
+  .update({
+    nombre: productoActivo.nombre,
+    imagen: productoActivo.imagen,
+
+    precio_base:
+      productoActivo.precios.base,
+  })
+  .eq("id", productoActivo.id);
 
       /* DELETE */
       await supabase
@@ -302,6 +321,145 @@ export default function BlockPage() {
     });
   };
 
+  const crearProducto = async () => {
+  const { data, error } =
+    await supabase
+      .from("productos")
+      .insert({
+        nombre: "Nuevo producto",
+        imagen: "",
+        categoria: "Block",
+        precio_base: 0,
+      })
+      .select()
+      .single();
+
+  if (error) {
+    console.error(error);
+    return;
+  }
+
+  const nuevoProducto: Producto = {
+    id: data.id,
+    nombre: data.nombre,
+    imagen: data.imagen,
+
+    precios: {
+      base: 0,
+      tarifas: [],
+      editando: true,
+    },
+  };
+
+  setProductos((prev) => [
+    nuevoProducto,
+    ...prev,
+  ]);
+
+  setProductoActivo(
+    nuevoProducto
+  );
+};
+
+const eliminarProducto = async () => {
+  if (!productoActivo) return;
+
+  await supabase
+    .from("tarifas_distancia")
+    .delete()
+    .eq(
+      "producto_id",
+      productoActivo.id
+    );
+
+  const { error } =
+    await supabase
+      .from("productos")
+      .delete()
+      .eq(
+        "id",
+        productoActivo.id
+      );
+
+  if (error) {
+    console.error(error);
+    return;
+  }
+
+  setProductos((prev) =>
+    prev.filter(
+      (p) =>
+        p.id !== productoActivo.id
+    )
+  );
+
+  cerrarModal();
+};
+
+const subirImagen = async (
+  e: React.ChangeEvent<HTMLInputElement>
+) => {
+  if (
+    !e.target.files ||
+    !e.target.files[0] ||
+    !productoActivo
+  )
+    return;
+
+  try {
+    setSubiendoImagen(true);
+
+    const archivo =
+      e.target.files[0];
+
+    const extension =
+      archivo.name
+        .split(".")
+        .pop();
+
+    const nombreArchivo =
+      `${Date.now()}.${extension}`;
+
+    const ruta =
+      `productos/${nombreArchivo}`;
+
+    const {
+      error: uploadError,
+    } =
+      await supabase.storage
+        .from("productos")
+        .upload(
+          ruta,
+          archivo
+        );
+
+    if (uploadError) {
+      console.error(
+        uploadError
+      );
+      return;
+    }
+
+    const { data } =
+      supabase.storage
+        .from("productos")
+        .getPublicUrl(
+          ruta
+        );
+
+    editarCampo(
+      "imagen",
+      data.publicUrl
+    );
+
+  } catch (error) {
+    console.error(error);
+  } finally {
+    setSubiendoImagen(false);
+  }
+};
+
+
   /* ---------------- UI ---------------- */
 
   return (
@@ -311,7 +469,7 @@ export default function BlockPage() {
       <div className="relative w-full h-[260px] md:h-[320px] overflow-hidden">
 
         <Image
-          src="/block/banner.jpg"
+          src="/block/banner.jpeg"
           alt="Block"
           fill
           className="object-cover"
@@ -326,6 +484,40 @@ export default function BlockPage() {
         </div>
 
       </div>
+
+      <div
+  className="
+    max-w-7xl
+    mx-auto
+    px-4
+    md:px-6
+    pt-6
+    md:pt-10
+    flex
+    justify-center
+    md:justify-end
+  "
+>
+  <button
+    onClick={crearProducto}
+    className="
+      bg-green-600
+      hover:bg-green-700
+      text-white
+      px-6
+      py-4
+      rounded-2xl
+      flex
+      items-center
+      gap-2
+      shadow-lg
+    "
+  >
+    <Plus size={22} />
+    Nuevo Producto
+  </button>
+</div>
+
 
       {/* GRID */}
       <div
@@ -374,8 +566,12 @@ export default function BlockPage() {
               "
             >
 
-              <Image
-                src={producto.imagen}
+             <Image
+                src={
+                  producto.imagen?.trim()
+                    ? producto.imagen
+                    : "/sin-imagen.png"
+                }
                 alt={producto.nombre}
                 fill
                 className="
@@ -410,18 +606,20 @@ export default function BlockPage() {
                 abrirModal(producto)
               }
               className="
-                mt-4
-                w-full
-                bg-[#d7bea7]
-                hover:bg-[#c7a789]
-                py-3
-                rounded-full
-                font-semibold
-                transition-all
-                duration-300
-                shadow-md
-                hover:shadow-xl
-                text-[#3f2d21]
+                      mt-6
+                      w-full
+                      bg-black
+                      hover:bg-gray-900
+                      text-white
+                      font-semibold
+                      py-3
+                      rounded-2xl
+                      transition-all
+                      duration-300
+                      hover:scale-[1.02]
+                      active:scale-95
+                      shadow-md
+                      hover:shadow-xl
               "
             >
               Ver precios
@@ -440,13 +638,14 @@ export default function BlockPage() {
 
           <div
             className="
-              max-w-7xl
-              mx-auto
-              my-10
-              bg-[#f8f4ef]
-              rounded-[40px]
-              overflow-hidden
-              shadow-2xl
+            w-full
+            max-w-7xl
+            mx-auto
+            my-2
+            md:my-10
+            bg-[#f8f4ef]
+            rounded-none
+            md:rounded-[40px]
             "
           >
 
@@ -454,10 +653,15 @@ export default function BlockPage() {
             <div
               className="
                 flex
-                items-center
+                flex-col
+                md:flex-row
+                md:items-center
                 justify-between
-                px-8
-                py-6
+                gap-4
+                px-4
+                md:px-8
+                py-4
+                md:py-6
                 border-b
                 border-[#eadfd3]
                 bg-white/70
@@ -465,45 +669,126 @@ export default function BlockPage() {
               "
             >
 
-              <div className="flex items-center gap-5">
+              <div className="flex flex-col md:flex-row gap-5 w-full">
 
                 {/* IMAGE */}
-                <div
-                  className="
-                    relative
-                    w-24
-                    h-24
-                    rounded-[24px]
-                    overflow-hidden
-                    shadow-lg
-                  "
-                >
 
-                  <Image
-                    src={
-                      productoActivo.imagen
-                    }
-                    alt={
-                      productoActivo.nombre
-                    }
-                    fill
-                    className="object-cover"
-                  />
+<div className="flex flex-col gap-3">
 
-                </div>
+  <div
+    className="
+      relative
+      w-24
+      h-24
+      rounded-[24px]
+      overflow-hidden
+      shadow-lg
+    "
+  >
+    <Image
+      src={
+        productoActivo.imagen?.trim()
+          ? productoActivo.imagen
+          : "/sin-imagen.png"
+      }
+      alt={productoActivo.nombre}
+      fill
+      className="object-cover"
+    />
+  </div>
+
+
+{productoActivo.precios.editando && (
+  <div className="w-full">
+
+    <p className="text-xs font-semibold text-[#7a6a5d] mb-2">
+      URL de la imagen
+    </p>
+
+    <input
+      type="text"
+      placeholder="Pega aquí el enlace de la imagen..."
+      value={productoActivo.imagen}
+      onChange={(e) =>
+        editarCampo("imagen", e.target.value)
+      }
+      className="
+        w-full
+        bg-white
+        border
+        border-[#e5d8cb]
+        rounded-2xl
+        px-4
+        py-3
+        text-sm
+        text-[#4b3425]
+        shadow-sm
+        outline-none
+        transition-all
+        focus:border-blue-500
+        focus:ring-2
+        focus:ring-blue-200
+        placeholder:text-gray-400
+      "
+    />
+
+    <label
+      className="
+        mt-3
+        block
+        bg-blue-600
+        hover:bg-blue-700
+        text-white
+        px-4
+        py-2
+        rounded-xl
+        cursor-pointer
+        text-center
+      "
+    >
+      Seleccionar imagen
+
+      <input
+        type="file"
+        accept="image/*"
+        onChange={subirImagen}
+        className="hidden"
+      />
+    </label>
+
+    {subiendoImagen && (
+      <p className="text-blue-600 text-sm mt-2">
+        Subiendo imagen...
+      </p>
+    )}
+
+  </div>
+)}
+
+</div>
 
                 <div>
 
-                  <h2
-                    className="
-                      text-4xl
-                      font-black
-                      text-[#4b3425]
-                      tracking-tight
-                    "
-                  >
-                    {productoActivo.nombre}
-                  </h2>
+                <input
+                  disabled={
+                    !productoActivo.precios.editando
+                  }
+                  value={productoActivo.nombre}
+                  onChange={(e) =>
+                    editarCampo(
+                      "nombre",
+                      e.target.value
+                    )
+                  }
+                  className="
+                    bg-transparent
+                    text-4xl
+                    font-black
+                    text-[#4b3425]
+                    outline-none
+                    w-full
+                  "
+                />
 
                   <p className="text-[#7a6a5d] mt-1">
                     Tarifas configurables por
@@ -532,7 +817,7 @@ export default function BlockPage() {
             </div>
 
             {/* CONTENT */}
-            <div className="p-8">
+            <div className="p-4 md:p-8">
 
               {/* ACTIONS */}
               <div
@@ -553,9 +838,11 @@ export default function BlockPage() {
                     className="
                       bg-white
                       rounded-[28px]
-                      p-6
+                      p-4
+                      md:p-6
                       shadow-md
-                      max-w-[420px]
+                      w-full
+                      md:max-w-[420px]
                     "
                   >
 
@@ -594,12 +881,13 @@ export default function BlockPage() {
                           )
                         }
                         className="
-                          bg-transparent
-                          outline-none
-                          text-5xl
-                          font-black
-                          text-[#2d2d2d]
-                          w-full
+                        bg-transparent
+                        text-2xl
+                        md:text-4xl
+                        font-black
+                        text-[#4b3425]
+                        outline-none
+                        w-full
                         "
                       />
 
@@ -610,7 +898,16 @@ export default function BlockPage() {
                 </div>
 
                 {/* BUTTONS */}
-                <div className="flex items-center gap-3">
+                <div
+  className="
+    flex
+    flex-col
+    sm:flex-row
+    gap-3
+    w-full
+    md:w-auto
+  "
+>
 
                   {productoActivo.precios
                     .editando && (
@@ -681,7 +978,27 @@ export default function BlockPage() {
                     )}
 
                   </button>
-
+                  
+                  <button
+  onClick={eliminarProducto}
+  className="
+    bg-black
+    hover:bg-gray-900
+    text-white
+    px-5
+    py-3
+    rounded-2xl
+    font-semibold
+    shadow-lg
+    transition
+    flex
+    items-center
+    gap-2
+  "
+>
+  <Trash2 size={18} />
+  Eliminar
+</button>
                 </div>
 
               </div>
@@ -850,11 +1167,12 @@ export default function BlockPage() {
                                 )
                               }
                               className="
-                                bg-transparent
-                                outline-none
-                                text-3xl
-                                font-black
-                                w-full
+                                  bg-transparent
+                                  outline-none
+                                  text-3xl
+                                  font-black
+                                  w-full
+                                  text-[#3f2d21]
                               "
                             />
 
@@ -878,12 +1196,14 @@ export default function BlockPage() {
                             Precio total
                           </div>
 
-                          <div className="text-4xl font-black mt-1">
+                          <div className="text-3xl md:text-4xl font-black mt-1 break-words">
                             $
                             {total.toLocaleString()}
                           </div>
 
                         </div>
+
+                        
 
                         {/* CALCULADORA DE VIAJE */}
 <div
@@ -925,18 +1245,9 @@ export default function BlockPage() {
       const totalCalculado =
         total * cantidad;
 
-      const totalElement =
-        document.getElementById(
-          `total-${index}`
-        );
-
-      if (totalElement) {
-        totalElement.innerText =
-          `$${totalCalculado.toLocaleString()}`;
-      }
     }}
   />
-
+  
   <div
     className="
       bg-gradient-to-r
@@ -963,14 +1274,92 @@ export default function BlockPage() {
 
 </div>
 
+
                       </div>
 
+              
                     );
                   }
                 )}
 
               </div>
+                 {/* NOTAS IMPORTANTES */}
+<div
+  className="
+    mt-10
+    bg-gradient-to-r
+    from-[#fff8f2]
+    to-[#f7efe7]
+    border
+    border-[#ead8c7]
+    rounded-[32px]
+    p-6
+    shadow-md
+  "
+>
 
+  {/* HEADER */}
+  <div className="flex items-center gap-4 mb-6">
+
+    <div
+      className="
+        w-14
+        h-14
+        rounded-full
+        bg-[#d7bea7]
+        flex
+        items-center
+        justify-center
+        text-[#3f2d21]
+        text-2xl
+        font-black
+        shadow-md
+      "
+    >
+      !
+    </div>
+
+    <div>
+
+      <h3
+        className="
+          text-2xl
+          font-black
+          text-[#3f2d21]
+        "
+      >
+        Notas importantes
+      </h3>
+
+      <p className="text-[#7a6a5d] text-sm mt-1">
+        Información adicional sobre los precios
+      </p>
+
+    </div>
+
+  </div>
+
+  {/* LISTA */}
+  <div className="grid md:grid-cols-2 gap-4">
+
+    <div
+      className="
+        bg-white
+        border
+        border-[#eadfd3]
+        rounded-2xl
+        p-4
+        text-[#4b3425]
+        font-semibold
+        shadow-sm
+      "
+    >
+      • Los precios no incluyen IVA hasta facturacion.
+    </div>
+
+  </div>
+
+</div> 
             </div>
 
           </div>
@@ -981,4 +1370,5 @@ export default function BlockPage() {
 
     </div>
   );
+  
 }

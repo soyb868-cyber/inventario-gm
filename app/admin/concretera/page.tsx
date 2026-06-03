@@ -2,400 +2,207 @@
 
 import Image from "next/image";
 import {
-  Bolt,
-  Lightbulb,
-  ShieldCheck,
-  Wrench,
+  Truck,
+  HardHat,
+  Droplets,
+  Shovel,
+  Building2,
+  BadgeCheck,
 } from "lucide-react";
 
-export default function ElectricidadPage() {
+export default function ConcreteraPage() {
   return (
-    <div className="bg-[#efefef] min-h-screen">
-
+    <main className="bg-[#f5f5f5] text-[#1f1f1f] overflow-hidden">
       {/* HERO */}
-      <section className="relative w-full h-[320px] overflow-hidden">
+      <section className="relative h-[500px] w-full">
         <Image
-          src="/electricidad/banner.jpg"
-          alt="Electricidad"
+          src="/concretera/heroe.jpeg"
+          alt="Servicio de Concretera"
           fill
           className="object-cover"
-          priority
         />
 
-        <div className="absolute inset-0 bg-black/45" />
+        <div className="absolute inset-0 bg-black/50" />
 
-        <div className="absolute inset-0 flex items-center justify-center">
-          <h1
-            className="
-              text-white
-              text-5xl
-              md:text-7xl
-              font-black
-              tracking-wide
-              drop-shadow-2xl
-            "
-          >
-            Electricidad
-          </h1>
+        <div className="relative z-10 flex h-full items-center justify-center px-6">
+          <div className="max-w-3xl text-center text-white">
+            <h1 className="mb-4 text-4xl font-bold md:text-6xl">
+              Servicio de Concretera
+            </h1>
+
+            <p className="mb-6 text-lg text-gray-200 md:text-xl">
+              Concreto preparado directamente en su obra
+            </p>
+
+            <p className="mb-8 text-sm text-gray-300 md:text-base">
+              Atención para obras privadas y públicas en Dolores Hidalgo y
+              municipios cercanos.
+            </p>
+
+          </div>
         </div>
       </section>
 
-      {/* CONTENIDO */}
-      <section className="max-w-7xl mx-auto px-6 py-20">
-
-        {/* TITULO */}
-        <div className="text-center max-w-4xl mx-auto mb-20">
-          <div
-            className="
-              inline-flex
-              items-center
-              gap-3
-              bg-yellow-100
-              text-yellow-800
-              px-6
-              py-3
-              rounded-full
-              font-bold
-              mb-6
-            "
-          >
-            <Bolt size={22} />
-            Instalaciones Eléctricas
-          </div>
-
-          <h2
-            className="
-              text-4xl
-              md:text-5xl
-              font-black
-              text-[#2d2d2d]
-              mb-6
-            "
-          >
-            Diseño e instalación profesional
-          </h2>
-
-          <p
-            className="
-              text-xl
-              text-gray-600
-              leading-relaxed
-            "
-          >
-            Diseñamos, instalamos y damos mantenimiento
-            a sistemas eléctricos residenciales,
-            comerciales e industriales con seguridad,
-            eficiencia y tecnología moderna.
-          </p>
-        </div>
-
-        {/* SECCIÓN CENTRAL */}
-        <div
-          className="
-            grid
-            md:grid-cols-3
-            gap-10
-            items-center
-            mb-24
-          "
-        >
-
-          {/* TEXTO IZQUIERDA */}
-          <div
-            className="
-              bg-white
-              rounded-[35px]
-              p-10
-              shadow-xl
-              text-center
-            "
-          >
-            <div
-              className="
-                w-16
-                h-16
-                rounded-full
-                bg-yellow-100
-                flex
-                items-center
-                justify-center
-                mx-auto
-                mb-6
-              "
-            >
-              <Lightbulb
-                size={30}
-                className="text-yellow-600"
-              />
-            </div>
-
-            <h3
-              className="
-                text-3xl
-                font-black
-                text-[#2d2d2d]
-                mb-5
-              "
-            >
-              Diseño de Sistemas
-            </h3>
-
-            <p
-              className="
-                text-gray-600
-                text-lg
-                leading-relaxed
-              "
-            >
-              Analizamos la demanda energética y el
-              tipo de inmueble para crear sistemas
-              eficientes, seguros y preparados para
-              crecimiento futuro.
-            </p>
-          </div>
-
-          {/* IMAGEN CENTRAL */}
-          <div
-            className="
-              relative
-              h-[520px]
-              rounded-[40px]
-              overflow-hidden
-              shadow-2xl
-            "
-          >
-            <Image
-              src="/electricidad/rayo.jpeg"
-              alt="Electricidad"
-              fill
-              className="object-cover"
-            />
-
-            <div className="absolute inset-0 bg-black/10" />
-          </div>
-
-          {/* TEXTO DERECHA */}
-          <div
-            className="
-              bg-white
-              rounded-[35px]
-              p-10
-              shadow-xl
-              text-center
-            "
-          >
-            <div
-              className="
-                w-16
-                h-16
-                rounded-full
-                bg-green-100
-                flex
-                items-center
-                justify-center
-                mx-auto
-                mb-6
-              "
-            >
-              <ShieldCheck
-                size={30}
-                className="text-green-600"
-              />
-            </div>
-
-            <h3
-              className="
-                text-3xl
-                font-black
-                text-[#2d2d2d]
-                mb-5
-              "
-            >
-              Instalación Segura
-            </h3>
-
-            <p
-              className="
-                text-gray-600
-                text-lg
-                leading-relaxed
-              "
-            >
-              Cada conexión, canalización y tablero
-              se instala con precisión para reducir
-              riesgos, fallas y sobrecargas.
-            </p>
-          </div>
-        </div>
-
-        {/* IMAGEN GRANDE */}
-        <div
-          className="
-            relative
-            w-full
-            h-[500px]
-            rounded-[45px]
-            overflow-hidden
-            shadow-2xl
-            mb-20
-          "
-        >
+      {/* QUE OFRECEMOS */}
+      <section className="mx-auto grid max-w-7xl grid-cols-1 gap-14 px-6 py-24 md:grid-cols-2">
+        {/* IMAGEN */}
+        <div className="relative h-[350px] overflow-hidden rounded-3xl shadow-2xl">
           <Image
-            src="/electricidad/foco.jpg"
-            alt="Instalaciones eléctricas"
+            src="/concretera/ofrecemos.jpg"
+            alt="Concretera"
             fill
             className="object-cover"
           />
+        </div>
 
-          <div className="absolute inset-0 bg-black/30" />
+        {/* TEXTO */}
+        <div className="flex flex-col justify-center">
+          <span className="mb-3 text-sm font-semibold uppercase tracking-[4px] text-[#c9b39a]">
+            ¿Qué ofrecemos?
+          </span>
 
-          <div
-            className="
-              absolute
-              inset-0
-              flex
-              flex-col
-              items-center
-              justify-center
-              text-center
-              px-6
-            "
-          >
-            <div
-              className="
-                bg-white/20
-                backdrop-blur-md
-                border
-                border-white/20
-                rounded-[35px]
-                p-10
-                max-w-3xl
-              "
-            >
-              <h3
-                className="
-                  text-white
-                  text-4xl
-                  md:text-5xl
-                  font-black
-                  mb-6
-                "
-              >
-                Soluciones eléctricas completas
-              </h3>
+          <h2 className="mb-6 text-4xl font-bold">
+            Soluciones eficientes para construcción
+          </h2>
 
-              <p
-                className="
-                  text-white/90
-                  text-xl
-                  leading-relaxed
-                "
-              >
-                Trabajamos en proyectos residenciales,
-                comerciales e industriales ofreciendo
-                calidad, seguridad y eficiencia
-                energética.
-              </p>
+          <p className="text-lg leading-relaxed text-gray-700">
+            Llevamos el equipo, operador y materiales necesarios para elaborar
+            concreto directamente en el sitio del proyecto, ofreciendo una
+            solución práctica, eficiente y profesional para distintos tipos de
+            construcción.
+          </p>
+        </div>
+      </section>
+
+      {/* INCLUYE */}
+      <section className="bg-[#ececec] py-24">
+        <div className="mx-auto grid max-w-7xl grid-cols-1 items-center gap-16 px-6 md:grid-cols-2">
+          {/* IZQUIERDA */}
+          <div>
+            <span className="mb-3 block text-sm font-semibold uppercase tracking-[4px] text-[#c9b39a]">
+              ¿Qué incluye el servicio?
+            </span>
+
+            <h2 className="mb-10 text-4xl font-bold">
+              Todo lo necesario para tu obra
+            </h2>
+
+            <div className="space-y-5">
+              <ServiceItem
+                icon={<Truck size={22} />}
+                text="Máquina concretera"
+              />
+
+              <ServiceItem
+                icon={<HardHat size={22} />}
+                text="Operador capacitado"
+              />
+
+              <ServiceItem
+                icon={<Shovel size={22} />}
+                text="Arena y grava"
+              />
+
+              <ServiceItem
+                icon={<Building2 size={22} />}
+                text="Cemento"
+              />
+
+              <ServiceItem
+                icon={<Droplets size={22} />}
+                text="Agua para mezcla"
+              />
+
+              <ServiceItem
+                icon={<BadgeCheck size={22} />}
+                text="Atención en obra"
+              />
+            </div>
+          </div>
+
+          {/* DERECHA */}
+          <div className="relative h-[450px] overflow-hidden rounded-[35px] shadow-[20px_20px_0px_rgba(0,0,0,0.15)]">
+            <Image
+              src="/concretera/obra.jpg"
+              alt="Obra"
+              fill
+              className="object-cover"
+            />
+          </div>
+        </div>
+      </section>
+
+      {/* VENTAJAS */}
+      <section className="bg-[#f5f5f5] py-24">
+        <div className="mx-auto max-w-7xl px-6">
+          {/* TITULO */}
+          <div className="mb-16 text-center">
+            <span className="mb-3 block text-sm font-semibold uppercase tracking-[4px] text-[#c9b39a]">
+              Ventajas
+            </span>
+
+            <h2 className="text-4xl font-bold">
+              Beneficios de nuestro servicio
+            </h2>
+          </div>
+
+          {/* CONTENIDO */}
+          <div className="grid grid-cols-1 items-center gap-16 md:grid-cols-2">
+            {/* IMAGEN */}
+            <div className="relative h-[450px] overflow-hidden rounded-[35px] shadow-[20px_20px_0px_rgba(0,0,0,0.15)]">
+              <Image
+                src="/concretera/ventajas.jpg"
+                alt="Ventajas concretera"
+                fill
+                className="object-cover"
+              />
+
+
+            </div>
+
+            {/* LISTA */}
+            <div className="space-y-6">
+              <VentajaItem text="Mezcla realizada directamente en obra" />
+
+              <VentajaItem text="Mayor practicidad y rapidez" />
+
+              <VentajaItem text="Reducción de desperdicio" />
+
+              <VentajaItem text="Atención para proyectos pequeños y grandes" />
+
+              <VentajaItem text="Servicio adaptable a diferentes necesidades" />
             </div>
           </div>
         </div>
-
-        {/* SERVICIOS */}
-        <div className="grid md:grid-cols-3 gap-8">
-
-          <div
-            className="
-              bg-white
-              rounded-[35px]
-              p-10
-              shadow-xl
-            "
-          >
-            <Wrench
-              size={38}
-              className="text-yellow-600 mb-5"
-            />
-
-            <h3
-              className="
-                text-2xl
-                font-black
-                text-[#2d2d2d]
-                mb-4
-              "
-            >
-              Mantenimiento
-            </h3>
-
-            <p className="text-gray-600 leading-relaxed">
-              Diagnóstico, reparación y mantenimiento
-              preventivo de instalaciones eléctricas.
-            </p>
-          </div>
-
-          <div
-            className="
-              bg-white
-              rounded-[35px]
-              p-10
-              shadow-xl
-            "
-          >
-            <Bolt
-              size={38}
-              className="text-yellow-600 mb-5"
-            />
-
-            <h3
-              className="
-                text-2xl
-                font-black
-                text-[#2d2d2d]
-                mb-4
-              "
-            >
-              Media y Baja Tensión
-            </h3>
-
-            <p className="text-gray-600 leading-relaxed">
-              Instalación y distribución eléctrica
-              para proyectos residenciales,
-              comerciales e industriales.
-            </p>
-          </div>
-
-          <div
-            className="
-              bg-white
-              rounded-[35px]
-              p-10
-              shadow-xl
-            "
-          >
-            <ShieldCheck
-              size={38}
-              className="text-yellow-600 mb-5"
-            />
-
-            <h3
-              className="
-                text-2xl
-                font-black
-                text-[#2d2d2d]
-                mb-4
-              "
-            >
-              Seguridad Eléctrica
-            </h3>
-
-            <p className="text-gray-600 leading-relaxed">
-              Protección, normativas y sistemas
-              diseñados para máxima seguridad.
-            </p>
-          </div>
-
-        </div>
       </section>
+    </main>
+  );
+}
+
+/* ITEMS SERVICIO */
+function ServiceItem({
+  icon,
+  text,
+}: {
+  icon: React.ReactNode;
+  text: string;
+}) {
+  return (
+    <div className="flex w-fit items-center gap-4 rounded-full bg-white px-6 py-4 shadow-lg transition hover:translate-x-2 hover:shadow-2xl">
+      <div className="text-[#c9b39a]">{icon}</div>
+
+      <span className="font-medium">{text}</span>
+    </div>
+  );
+}
+
+/* ITEMS VENTAJAS */
+function VentajaItem({ text }: { text: string }) {
+  return (
+    <div className="flex items-center gap-4 rounded-2xl bg-white p-5 shadow-lg transition hover:translate-x-2 hover:shadow-2xl">
+      <div className="h-3 w-3 rounded-full bg-[#c9b39a]" />
+
+      <p className="text-lg font-medium text-gray-700">{text}</p>
     </div>
   );
 }

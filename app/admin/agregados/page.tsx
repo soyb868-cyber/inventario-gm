@@ -20,6 +20,7 @@ type TarifaDistancia = {
   mayoreo: number;
   carretilla?: number;
   incluyeCarretilla?: boolean;
+  pickup?: boolean;
 };
 
 type Precio = {
@@ -40,6 +41,8 @@ type ProductoDB = {
   id: number;
   nombre: string;
   imagen: string;
+  medidas: string;
+  notas: string;
 };
 
 type TarifaDB = {
@@ -50,11 +53,21 @@ type TarifaDB = {
   mayoreo: number;
   carretilla: number | null;
   incluye_carretilla: boolean;
+  pickup: boolean;
 };
 
 export default function AgregadosPage() {
   const [productos, setProductos] = useState<Producto[]>([]);
   const [productoActivo, setProductoActivo] = useState<Producto | null>(null);
+
+  const [pickup, setPickup] =
+  useState<{ [key: number]: boolean }>({});
+
+const [cantidad, setCantidad] =
+  useState<{ [key: number]: number }>({});
+
+const [subiendoImagen, setSubiendoImagen] =
+  useState(false);
 
   /* ---------------- LOAD ---------------- */
   useEffect(() => {
@@ -63,6 +76,7 @@ export default function AgregadosPage() {
         .from("productos")
         .select("*")
         .eq("tipo", "agregados");
+        
 
       const { data: tarifasDB } = await supabase
         .from("producto_tarifas")
@@ -82,6 +96,7 @@ export default function AgregadosPage() {
             mayoreo: Number(t.mayoreo || 0),
             carretilla: Number(t.carretilla || 0),
             incluyeCarretilla: t.incluye_carretilla ?? false,
+            pickup: t.pickup ?? true,
           }));
 
         return {
@@ -90,8 +105,8 @@ export default function AgregadosPage() {
           imagen: p.imagen,
           precios: [
             {
-              medidas: "",
-              notas: "",
+              medidas: p.medidas || "",
+              notas: p.notas || "",
               editando: false,
               tarifas,
             },
@@ -103,6 +118,7 @@ export default function AgregadosPage() {
     };
 
     fetchData();
+    
   }, []);
 
   /* ---------------- MODAL STATE ---------------- */
@@ -117,53 +133,134 @@ export default function AgregadosPage() {
     );
   };
 
-  const toggleEditar = (index: number) => {
-    if (!productoActivo) return;
+  const editarCampo = (
+  campo: keyof Producto,
+  valor: string
+) => {
+  if (!productoActivo) return;
 
-    const nuevos = [...productoActivo.precios];
-    nuevos[index].editando = !nuevos[index].editando;
+  actualizarProducto({
+    ...productoActivo,
+    [campo]: valor,
+  });
+};
 
-    actualizarProducto({
-      ...productoActivo,
-      precios: nuevos,
-    });
+ const toggleEditar = async (
+  index: number
+) => {
+  if (!productoActivo) return;
+
+  if (
+    productoActivo.precios[index]
+      .editando
+  ) {
+
+    await supabase
+      .from("producto_tarifas")
+      .delete()
+      .eq(
+        "producto_id",
+        productoActivo.id
+      );
+      await supabase
+  .from("productos")
+  .update({
+    nombre: productoActivo.nombre,
+    imagen: productoActivo.imagen,
+
+    medidas:
+      productoActivo.precios[index]
+        .medidas,
+
+    notas:
+      productoActivo.precios[index]
+        .notas,
+  })
+  .eq("id", productoActivo.id);
+
+    const tarifas =
+      productoActivo.precios[index]
+        .tarifas;
+
+    if (tarifas.length > 0) {
+
+      await supabase
+        .from("producto_tarifas")
+        .insert(
+          tarifas.map((t) => ({
+            producto_id:
+              productoActivo.id,
+
+            rango: t.rango,
+
+            menudeo:
+              t.menudeo,
+
+            mayoreo:
+              t.mayoreo,
+
+            carretilla:
+              t.carretilla || 0,
+
+            incluye_carretilla:
+              t.incluyeCarretilla ??
+              false,
+              pickup: t.pickup ?? true,
+          }))
+        );
+    }
+  }
+
+  const nuevos = [
+    ...productoActivo.precios,
+  ];
+
+  nuevos[index].editando =
+    !nuevos[index].editando;
+
+  actualizarProducto({
+    ...productoActivo,
+    precios: nuevos,
+  });
+};
+
+const editarTarifa = (
+  index: number,
+  tIndex: number,
+  campo: keyof TarifaDistancia,
+  valor: string | number | boolean
+) => {
+  if (!productoActivo) return;
+
+  const nuevos = [...productoActivo.precios];
+  const tarifas = [...nuevos[index].tarifas];
+
+  tarifas[tIndex] = {
+    ...tarifas[tIndex],
+    [campo]: valor,
   };
 
-  const editarTarifa = (
-    index: number,
-    tIndex: number,
-    campo: keyof TarifaDistancia,
-    valor: string | number
-  ) => {
-    if (!productoActivo) return;
+  nuevos[index].tarifas = tarifas;
 
-    const nuevos = [...productoActivo.precios];
-    const tarifas = [...nuevos[index].tarifas];
-
-    tarifas[tIndex] = {
-      ...tarifas[tIndex],
-      [campo]: valor,
-    };
-
-    nuevos[index].tarifas = tarifas;
-
-    actualizarProducto({
-      ...productoActivo,
-      precios: nuevos,
-    });
-  };
+  actualizarProducto({
+    ...productoActivo,
+    precios: nuevos,
+  });
+};
 
   const agregarTarifa = (index: number) => {
     if (!productoActivo) return;
 
     const nuevos = [...productoActivo.precios];
 
-    nuevos[index].tarifas.push({
-      rango: "Nueva distancia",
-      menudeo: 0,
-      mayoreo: 0,
-      incluyeCarretilla: false,
-    });
+nuevos[index].tarifas.push({
+  rango: "Nueva distancia",
+  menudeo: 0,
+  mayoreo: 0,
+  carretilla: 0,
+  incluyeCarretilla: true,
+  pickup: true,
+});
 
     actualizarProducto({
       ...productoActivo,
@@ -186,6 +283,121 @@ export default function AgregadosPage() {
     });
   };
 
+  const crearProducto = async () => {
+  const { data, error } = await supabase
+    .from("productos")
+    .insert({
+      nombre: "Nuevo producto",
+      imagen: "",
+      tipo: "agregados",
+    })
+    .select()
+    .single();
+
+  if (error) {
+    console.error(error);
+    return;
+  }
+
+  const nuevoProducto: Producto = {
+    id: data.id,
+    nombre: data.nombre,
+    imagen: data.imagen,
+    precios: [
+      {
+        medidas: "",
+        notas: "",
+        editando: true,
+        tarifas: [],
+      },
+    ],
+  };
+
+  setProductos((prev) => [
+    nuevoProducto,
+    ...prev,
+  ]);
+
+  setProductoActivo(nuevoProducto);
+};
+
+const eliminarProducto = async () => {
+  if (!productoActivo) return;
+
+  await supabase
+    .from("producto_tarifas")
+    .delete()
+    .eq("producto_id", productoActivo.id);
+
+  const { error } = await supabase
+    .from("productos")
+    .delete()
+    .eq("id", productoActivo.id);
+
+  if (error) {
+    console.error(error);
+    return;
+  }
+
+  setProductos((prev) =>
+    prev.filter(
+      (p) => p.id !== productoActivo.id
+    )
+  );
+
+  cerrarModal();
+};
+
+const subirImagen = async (
+  e: React.ChangeEvent<HTMLInputElement>
+) => {
+  if (
+    !e.target.files ||
+    !e.target.files[0] ||
+    !productoActivo
+  )
+    return;
+
+  try {
+    setSubiendoImagen(true);
+
+    const archivo = e.target.files[0];
+
+    const extension =
+      archivo.name.split(".").pop();
+
+    const nombreArchivo =
+      `${Date.now()}.${extension}`;
+
+    const ruta =
+      `productos/${nombreArchivo}`;
+
+    const { error: uploadError } =
+      await supabase.storage
+        .from("productos")
+        .upload(ruta, archivo);
+
+    if (uploadError) {
+      console.error(uploadError);
+      return;
+    }
+
+    const { data } = supabase.storage
+      .from("productos")
+      .getPublicUrl(ruta);
+
+    editarCampo(
+      "imagen",
+      data.publicUrl
+    );
+
+  } catch (error) {
+    console.error(error);
+  } finally {
+    setSubiendoImagen(false);
+  }
+};
+
   /* ---------------- UI ---------------- */
 
   return (
@@ -194,7 +406,7 @@ export default function AgregadosPage() {
       {/* HERO (igual que tu diseño bonito) */}
       <div className="relative w-full h-[260px] md:h-[320px] overflow-hidden">
         <Image
-          src="/agregados/banner-agregados.webp"
+          src="/agregados/banner-agregados.jpeg"
           alt="Agregados"
           fill
           className="object-cover"
@@ -205,6 +417,36 @@ export default function AgregadosPage() {
           </h1>
         </div>
       </div>
+
+        <div className="
+        <div
+    w-[95%]
+    md:w-auto
+    max-w-7xl
+    mx-auto
+    my-4
+    md:my-10
+  "
+  >
+  <button
+    onClick={crearProducto}
+    className="
+      bg-green-600
+      hover:bg-green-700
+      text-white
+      px-6
+      py-4
+      rounded-2xl
+      flex
+      items-center
+      gap-2
+      shadow-lg
+    "
+  >
+    <Plus size={22} />
+    Nuevo Producto
+  </button>
+</div>
 
       {/* GRID BONITO */}
       <div className="max-w-7xl mx-auto px-6 py-14 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
@@ -230,7 +472,11 @@ export default function AgregadosPage() {
           >
             <div className="relative w-full h-[170px] rounded-2xl overflow-hidden">
               <Image
-                src={p.imagen}
+                  src={
+                    p.imagen?.trim()
+                      ? p.imagen
+                      : "/sin-imagen.png"
+                  }
                 alt={p.nombre}
                 fill
                 className="
@@ -248,7 +494,22 @@ export default function AgregadosPage() {
 
             <button
               onClick={() => abrirModal(p)}
-              className="mt-4 w-full bg-[#d7bea7] hover:bg-[#c7a789] py-3 rounded-full font-semibold"
+              className="
+                      mt-6
+                      w-full
+                      bg-black
+                      hover:bg-gray-900
+                      text-white
+                      font-semibold
+                      py-3
+                      rounded-2xl
+                      transition-all
+                      duration-300
+                      hover:scale-[1.02]
+                      active:scale-95
+                      shadow-md
+                      hover:shadow-xl
+              "
             >
               Ver precios
             </button>
@@ -256,6 +517,7 @@ export default function AgregadosPage() {
         ))}
       </div>
 
+  
     {/* Modal*/}
     {productoActivo && (
       <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 overflow-y-auto">
@@ -276,9 +538,13 @@ export default function AgregadosPage() {
       <div
         className="
           flex
-          items-center
+          flex-col
+          md:flex-row
+          md:items-center
           justify-between
-          px-8
+          gap-6
+          px-4
+          md:px-8
           py-6
           border-b
           border-[#eadfd3]
@@ -286,38 +552,149 @@ export default function AgregadosPage() {
           backdrop-blur
         "
       >
-        <div className="flex items-center gap-5">
+<div className="    
+    flex
+    flex-col
+    sm:flex-row
+    items-center
+    sm:items-start
+    gap-5
+    w-full
+  ">
 
-                    {/* IMAGE */}
-          <div className="relative w-24 h-24 rounded-[24px] overflow-hidden shadow-lg">
-            <Image
-              src={productoActivo.imagen}
-              alt={productoActivo.nombre}
-              fill
-              className="object-cover"
-            />
-          </div>
-          <div>
-            <h2 className="text-4xl font-black text-[#4b3425] tracking-tight">
-              {productoActivo.nombre}
-            </h2>
+  <div className="flex flex-col gap-3">
 
-            <p className="text-[#7a6a5d] mt-1">
-              Tarifas configurables por distancia
-            </p>
-          </div>
-        </div>
+    <div
+      className="
+        relative
+        w-24
+        h-24
+        rounded-[24px]
+        overflow-hidden
+        shadow-lg
+      "
+    >
+      <Image
+        src={
+          productoActivo.imagen?.trim()
+            ? productoActivo.imagen
+            : "/sin-imagen.png"
+        }
+        alt={productoActivo.nombre}
+        fill
+        className="object-cover"
+      />
+    </div>
+
+    {productoActivo.precios[0].editando && (
+      <>
+<input
+  type="text"
+  placeholder="Pega aquí el enlace de la imagen..."
+  value={productoActivo.imagen}
+  onChange={(e) =>
+    editarCampo("imagen", e.target.value)
+  }
+  className="
+    w-full
+    bg-white
+    border
+    border-[#e5d8cb]
+    rounded-2xl
+    px-4
+    py-3
+    text-sm
+    text-[#4b3425]
+    shadow-sm
+    outline-none
+    transition-all
+    focus:border-blue-500
+    focus:ring-2
+    focus:ring-blue-200
+    placeholder:text-gray-400
+  "
+/>
+
+        <label
+          className="
+            bg-blue-600
+            hover:bg-blue-700
+            text-white
+            px-4
+            py-2
+            rounded-xl
+            cursor-pointer
+            text-center
+          "
+        >
+          Seleccionar imagen
+
+          <input
+            type="file"
+            accept="image/*"
+            onChange={subirImagen}
+            className="hidden"
+          />
+        </label>
+
+        {subiendoImagen && (
+          <p className="text-blue-600 text-sm">
+            Subiendo imagen...
+          </p>
+        )}
+      </>
+    )}
+  </div>
+
+  <div>
+    <input
+      disabled={
+        !productoActivo.precios[0].editando
+      }
+      value={productoActivo.nombre}
+      onChange={(e) =>
+        editarCampo(
+          "nombre",
+          e.target.value
+        )
+      }
+      className="
+  bg-transparent
+  text-2xl
+  md:text-4xl
+  font-black
+  w-full
+      "
+    />
+
+    <p className="text-[#7a6a5d] mt-1">
+      Tarifas configurables por distancia
+    </p>
+  </div>
+
+</div>
 
           <button
           onClick={cerrarModal}
           className="
-            bg-[#e7d8ca]
-            hover:bg-[#d9c3af]
-            px-5
+            flex
+            items-center
+            gap-2
+            bg-white
+            hover:bg-[#f5ede6]
+            border
+            border-[#d8c6b6]
+            text-[#4b3425]
+            px-6
             py-3
             rounded-2xl
-            font-semibold
-            transition
+            font-bold
+            shadow-md
+            hover:shadow-lg
+            transition-all
+            duration-300
+            hover:scale-105
+            active:scale-95
           "
         >
           Cerrar
@@ -325,7 +702,7 @@ export default function AgregadosPage() {
       </div>
 
            {/* CONTENT */}
-      <div className="p-8">
+      <div className="p-4 md:p-8">
 
         {productoActivo.precios.map((precio, index) => (
 
@@ -337,26 +714,43 @@ export default function AgregadosPage() {
               {/* MEDIDAS */}
               <div className="flex-1">
 
-                <input
-                  value={precio.medidas}
-                  disabled={!precio.editando}
-                  placeholder="Ej: 1m³ / 1 tonelada"
-                  className="
-                    text-3xl
-                    font-black
-                    bg-transparent
-                    outline-none
-                    border-b-2
-                    border-[#d8c6b6]
-                    py-2
-                    w-full
-                    text-[#3f2d21]
-                  "
-                />
+          <input
+            value={precio.medidas}
+            disabled={!precio.editando}
+            placeholder="Ej: 1m³ / 1 tonelada"
+            onChange={(e) => {
+              if (!productoActivo) return;
+
+              const nuevos = [...productoActivo.precios];
+
+              nuevos[index].medidas = e.target.value;
+
+              actualizarProducto({
+                ...productoActivo,
+                precios: nuevos,
+              });
+            }}
+            className="
+              text-3xl
+              font-black
+              bg-transparent
+              outline-none
+              border-b-2
+              border-[#d8c6b6]
+              py-2
+              w-full
+              text-[#3f2d21]
+            "
+          />
               </div>
 
                             {/* ACTION BUTTONS */}
-              <div className="flex items-center gap-3">
+              <div className="    
+    flex
+    flex-wrap
+    gap-3
+    w-full
+    md:w-auto">
 
                 {precio.editando && (
                   <button
@@ -412,11 +806,40 @@ export default function AgregadosPage() {
                     </>
                   )}
                 </button>
+
+                <button
+  onClick={eliminarProducto}
+  className="
+    bg-black
+    hover:bg-gray-900
+    text-white
+    px-5
+    py-3
+    rounded-2xl
+    font-semibold
+    shadow-lg
+    transition
+    flex
+    items-center
+    gap-2
+  "
+>
+  <Trash2 size={18} />
+  Eliminar
+</button>
               </div>
             </div>
 
                         {/* GRID */}
-            <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-7">
+            <div className="
+              bg-white/90
+              backdrop-blur
+              border
+              border-[#eadfd3]
+              rounded-[24px]
+              p-4
+              md:p-6
+            ">
 
               {precio.tarifas.map((t, tIndex) => (
 
@@ -510,7 +933,7 @@ export default function AgregadosPage() {
                     {/* MENUDEO */}
                     <div className="bg-[#f7f3ef] rounded-2xl p-4">
 
-                      <div className="text-xs text-gray-500 mb-1">
+                      <div className="text-xs text-[#6b5a4c] mb-1 font-semibold">
                         Menudeo m³
                       </div>
 
@@ -538,6 +961,7 @@ export default function AgregadosPage() {
                             text-3xl
                             font-black
                             w-full
+                            text-[#3f2d21]
                           "
                         />
                       </div>
@@ -546,7 +970,7 @@ export default function AgregadosPage() {
                                         {/* MAYOREO */}
                     <div className="bg-[#f7f3ef] rounded-2xl p-4">
 
-                      <div className="text-xs text-gray-500 mb-1">
+                      <div className="text-xs text-[#6b5a4c] mb-1 font-semibold">
                         Mayoreo m³
                       </div>
 
@@ -571,9 +995,11 @@ export default function AgregadosPage() {
                             className="
                             bg-transparent
                             outline-none
-                            text-3xl
+                            text-xl
+                            md:text-3xl
                             font-black
                             w-full
+                            text-[#3f2d21]
                           "
                         />
                       </div>
@@ -582,7 +1008,7 @@ export default function AgregadosPage() {
                     {t.incluyeCarretilla && (
                       <div className="bg-[#f7f3ef] rounded-2xl p-4">
 
-                        <div className="text-xs text-gray-500 mb-1">
+                        <div className="text-xs text-[#6b5a4c] mb-1 font-semibold">
                           Carretilla
                         </div>
 
@@ -606,17 +1032,59 @@ export default function AgregadosPage() {
                             }
                             
                             className="
-                              bg-transparent
-                              outline-none
-                              text-3xl
-                              font-black
-                              w-full
+                                  bg-transparent
+                                  outline-none
+                                  text-xl
+                                  md:text-3xl
+                                  font-black
+                                  w-full
+                                  text-[#3f2d21]
                             "
                           />
                         </div>
                       </div>
                     )}
+
+                    
                   </div>
+
+                  {/* PICKUP */}
+<div className="mt-5">
+
+  <label
+    className="
+      flex
+      items-center
+      gap-3
+      bg-[#f7f3ef]
+      rounded-2xl
+      p-4
+      cursor-pointer
+    "
+  >
+    <input
+      type="checkbox"
+      checked={t.pickup ?? true}
+      disabled={!precio.editando}
+      onChange={(e) =>
+        editarTarifa(
+          index,
+          tIndex,
+          "pickup",
+          e.target.checked
+        )
+      }
+      className="w-5 h-5"
+    />
+
+    <span className="font-semibold text-[#3f2d21]">
+      Pickup (sin flete)
+    </span>
+  </label>
+
+</div>
+
+
 
                   
                   {/* BADGE */}
@@ -635,7 +1103,7 @@ export default function AgregadosPage() {
                       Tarifa activa
                     </div>
 
-                    <div className="text-2xl font-black mt-1">
+                    <div className="text-xl md:text-2xl font-black mt-1">
                       {t.rango}
                     </div>
                   </div>
@@ -645,6 +1113,83 @@ export default function AgregadosPage() {
             </div>
           </div>
         ))}
+
+                {/* NOTAS IMPORTANTES */}
+        <div
+          className="
+            mt-10
+            bg-gradient-to-r
+            from-[#fff8f2]
+            to-[#f7efe7]
+            border
+            border-[#ead8c7]
+            rounded-[32px]
+            p-6
+            shadow-md
+          "
+        >
+
+          {/* HEADER */}
+          <div className="flex items-center gap-4 mb-6">
+
+            <div
+              className="
+                w-14
+                h-14
+                rounded-full
+                bg-[#d7bea7]
+                flex
+                items-center
+                justify-center
+                text-[#3f2d21]
+                text-2xl
+                font-black
+                shadow-md
+              "
+            >
+              !
+            </div>
+
+            <div>
+
+              <h3
+                className="
+                  text-2xl
+                  font-black
+                  text-[#3f2d21]
+                "
+              >
+                Notas importantes
+              </h3>
+
+              <p className="text-[#7a6a5d] text-sm mt-1">
+                Información adicional sobre los precios
+              </p>
+
+            </div>
+
+          </div>
+
+          {/* LISTA */}
+          <div className="grid md:grid-cols-2 gap-4">
+
+            <div
+              className="
+                bg-white
+                border
+                border-[#eadfd3]
+                rounded-2xl
+                p-4
+                text-[#4b3425]
+                font-semibold
+                shadow-sm
+              "
+            >
+              • Los precios no incluyen IVA hasta facturacion.
+            </div>
+          </div>
+
+        </div>
       </div>
     </div>
   </div>

@@ -7,6 +7,7 @@ import {
   FaInstagram,
   FaWhatsapp,
 } from "react-icons/fa";
+import Image from "next/image";
 
 export default function Hero() {
 
@@ -35,10 +36,17 @@ export default function Hero() {
   }, []);
 
   return (
-        <section
-        id="inicio"
-        className="relative w-full h-screen overflow-hidden bg-black"
-        >
+  <section
+      id="inicio"
+      className="
+        relative
+        w-full
+        min-h-screen
+        pt-[90px]
+        overflow-hidden
+        bg-black
+      "
+    >
 
       {/* HERO IMAGE */}
       <div className="absolute inset-0">
@@ -47,19 +55,18 @@ export default function Hero() {
 
           {/* IMAGENES */}
           {images.map((img, index) => (
-            <img
+            <Image
               key={index}
               src={img}
               alt="Construcción"
-              className={`
-                absolute inset-0
-                w-full h-full object-cover
-                transition-opacity duration-1000
-                ${current === index
-                  ? "opacity-100"
-                  : "opacity-0"
-                }
-              `}
+              fill
+              priority={index === 0}
+              quality={100}
+              sizes="100vw"
+              className={`object-cover transition-opacity duration-1000 ${
+                current === index ? "opacity-100" : "opacity-0"
+              }`}
+
             />
           ))}
 
@@ -70,12 +77,12 @@ export default function Hero() {
       </div>
 
       {/* CONTENIDO */}
-      <div className="relative z-20 h-full flex flex-col justify-between">
+      <div className="relative z-20 min-h-[calc(100vh-90px)] flex flex-col justify-between">
 
         {/* TEXTO */}
         <div className="absolute top-1/2 -translate-y-1/2 left-[7%] text-white">
 
-          <h1 className="text-5xl md:text-7xl font-bold leading-tight drop-shadow-2xl">
+          <h1 className="text-4xl sm:text-5xl md:text-7xl font-bold leading-tight drop-shadow-2xl">
             Materiales <br />
             para construcción
           </h1>
@@ -85,84 +92,9 @@ export default function Hero() {
             para todos tus proyectos.
           </p>
 
-          {/* BOTONES */}
-          <div className="flex flex-wrap gap-5 mt-10">
-
-            <a
-              href="#productos"
-              className="
-                border-2 border-white
-                text-white
-                px-8 py-4
-                rounded-full
-                text-lg
-                hover:bg-white
-                hover:text-black
-                transition duration-300
-              "
-            >
-              Ver productos
-            </a>
-
-            <a
-              href="#contacto"
-              className="
-                border-2 border-white
-                text-white
-                px-8 py-4
-                rounded-full
-                text-lg
-                hover:bg-white
-                hover:text-black
-                transition duration-300
-              "
-            >
-              Contacto
-            </a>
-
-          </div>
         </div>
 
-        {/* FOOTER */}
-        <div className="relative z-30 bg-[#ececec] min-h-[78px] flex flex-col md:flex-row items-center justify-between px-6 md:px-10 py-4 text-[18px] md:text-[20px] gap-4">
-
-          <p className="text-white-700 font-medium">
-            construramaduromexicano@gmail.com
-          </p>
-
-          <div className="flex flex-col md:flex-row items-center gap-5 md:gap-8">
-
-            <p className="text-white-700 font-medium">
-              418 - 182 - 6245
-            </p>
-
-            {/* ICONOS */}
-            <div className="flex gap-4">
-
-              <a
-                href="#"
-                className="w-14 h-14 rounded-full border-[3px] border-black flex items-center justify-center hover:scale-110 transition duration-300"
-              >
-                <FaWhatsapp size={24} />
-              </a>
-
-              <a
-                href="#"
-                className="w-14 h-14 rounded-full border-[3px] border-black flex items-center justify-center hover:scale-110 transition duration-300"
-              >
-                <FaInstagram size={24} />
-              </a>
-
-              <a
-                href="#"
-                className="w-14 h-14 rounded-md border-[3px] border-black flex items-center justify-center hover:scale-110 transition duration-300"
-              >
-                <FaFacebookF size={22} />
-              </a>
-
-            </div>
-          </div>
-        </div>
+{/* FOOTER */}
       </div>
     </section>
   );

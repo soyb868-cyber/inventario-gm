@@ -20,21 +20,34 @@ export default function InventarioPage() {
   const [productos, setProductos] = useState<Producto[]>([]);
   const [search, setSearch] = useState("");
 
-  useEffect(() => {
+useEffect(() => {
+  const cached = localStorage.getItem("productos");
 
-    const fetchProductos = async () => {
+  if (cached) {
+    setProductos(JSON.parse(cached));
+  }
 
-      const { data } = await supabase
-        .from("productos")
-        .select("*")
-        .order("id", { ascending: false });
+  const fetchProductos = async () => {
+    const { data, error } = await supabase
+      .from("productos")
+      .select("*")
+      .order("id", { ascending: false });
 
-      setProductos(data || []);
-    };
+    if (error) {
+      console.error("Error Supabase:", error.message);
+      return;
+    }
 
+    if (data) {
+      setProductos(data);
+      localStorage.setItem("productos", JSON.stringify(data));
+    }
+  };
+
+  if (navigator.onLine) {
     fetchProductos();
-
-  }, []);
+  }
+}, []);
 
   const filtered = productos.filter((p) =>
     p.nombre.toLowerCase().includes(search.toLowerCase())

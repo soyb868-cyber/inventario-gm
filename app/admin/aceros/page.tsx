@@ -14,12 +14,19 @@ import { supabase } from "@/app/lib/supabase";
 
 
 type PrecioAcero = {
+  id: number;
   medida: string;
+
   precioPieza: number;
+
+  piezasPorTonelada: number; // NUEVO
+
   precioMayoreo: number;
   precioCarretilla: number;
+
   rango: string;
   notas: string;
+
   editando?: boolean;
 };
 
@@ -37,30 +44,36 @@ type ProductoDB = {
   imagen: string;
   descripcion: string;
 };
+
 type AceroPrecioDB = {
   id: number;
-
   producto_id: number;
-
   medida: string;
 
   menudeo: number;
-
   mayoreo: number;
 
+  piezas_por_tonelada: number; // NUEVO
+
   carretilla: number;
-
   rango: string;
-
   notas: string;
 };
+
 export default function AcerosPage() {
     const [productos, setProductos] =
         useState<Producto[]>([]);
 
   const [productoActivo, setProductoActivo] =
     useState<Producto | null>(null);
+
+    const [modo, setModo] = useState<"crear" | "editar">("editar");
+
+    const [guardandoProducto, setGuardandoProducto] = useState(false);
+const [subiendoImagen, setSubiendoImagen] = useState(false);
+
     useEffect(() => {
+      
 
 const fetchProductos = async () => {
 
@@ -104,27 +117,30 @@ const precios =
       (precio) =>
         precio.producto_id === p.id
     )
-    .map((precio) => ({
-      medida: precio.medida,
+.map((precio) => ({
+  id: precio.id,
+  medida: precio.medida,
 
-      precioPieza: Number(
-        precio.menudeo || 0
-      ),
+  precioPieza: Number(
+    precio.menudeo || 0
+  ),
 
-      precioMayoreo: Number(
-        precio.mayoreo || 0
-      ),
+  precioMayoreo: Number(
+    precio.mayoreo || 0
+  ),
 
-      precioCarretilla: Number(
-        precio.carretilla || 0
-      ),
+  piezasPorTonelada: Number(
+    precio.piezas_por_tonelada || 0
+  ),
 
-      rango: precio.rango || "",
+  precioCarretilla: Number(
+    precio.carretilla || 0
+  ),
 
-      notas: precio.notas || "",
-
-      editando: false,
-    }));
+  rango: precio.rango || "",
+  notas: precio.notas || "",
+  editando: false,
+}));
 
       return {
         id: p.id,
@@ -143,11 +159,15 @@ const precios =
 }, []);
 
 
-  const abrirModal = (producto: Producto) =>
-    setProductoActivo(producto);
+const abrirModal = (producto: Producto) => {
+  setProductoActivo(producto);
+  setModo("editar");
+};
 
-  const cerrarModal = () =>
-    setProductoActivo(null);
+const cerrarModal = () => {
+  setProductoActivo(null);
+  setModo("editar");
+};
 
   const actualizarProducto = (
     actualizado: Producto
@@ -163,6 +183,179 @@ const precios =
     );
   };
 
+const crearProducto = async () => {
+  // Crear producto
+  const { data, error } = await supabase
+    .from("productos")
+    .insert({
+      nombre: "",
+      imagen: "",
+      descripcion: "",
+      tipo: "aceros",
+    })
+    .select()
+    .single();
+
+  if (error || !data) {
+    console.error(error);
+    return;
+  }
+
+  // Crear primera medida automáticamente
+  const { data: tarifa, error: tarifaError } =
+    await supabase
+      .from("producto_tarifas")
+      .insert({
+        producto_id: data.id,
+        medida: "Escribe la medida",
+        menudeo: 0,
+        mayoreo: 0,
+        piezas_por_tonelada: 70,
+        carretilla: 0,
+        rango: "",
+        notas: "",
+      })
+      .select()
+      .single();
+
+  if (tarifaError) {
+    console.error(tarifaError);
+  }
+
+  const nuevo: Producto = {
+    id: data.id,
+    nombre: "",
+    imagen: "/placeholder-producto.jpg",
+    descripcion: "",
+    precios: tarifa
+      ? [
+          {
+            id: tarifa.id,
+            medida: tarifa.medida,
+            precioPieza: Number(tarifa.menudeo),
+            precioMayoreo: Number(tarifa.mayoreo),
+            piezasPorTonelada: Number(
+              tarifa.piezas_por_tonelada
+            ),
+            precioCarretilla: Number(
+              tarifa.carretilla
+            ),
+            rango: tarifa.rango,
+            notas: tarifa.notas,
+            editando: true,
+          },
+        ]
+      : [],
+  };
+
+  setProductos((prev) => [nuevo, ...prev]);
+  setProductoActivo(nuevo);
+  setModo("crear");
+};
+
+const eliminarProducto = async () => {
+  if (!productoActivo) return;
+
+  await supabase
+    .from("producto_tarifas")
+    .delete()
+    .eq("producto_id", productoActivo.id);
+
+  await supabase
+    .from("productos")
+    .delete()
+    .eq("id", productoActivo.id);
+
+  setProductos((prev) =>
+    prev.filter((p) => p.id !== productoActivo.id)
+  );
+
+  cerrarModal();
+};
+
+const guardarProducto = async () => {
+  if (!productoActivo) return;
+
+  setGuardandoProducto(true);
+
+  try {
+    // producto
+    await supabase
+      .from("productos")
+      .update({
+        nombre: productoActivo.nombre,
+        descripcion: productoActivo.descripcion,
+        imagen: productoActivo.imagen,
+      })
+      .eq("id", productoActivo.id);
+
+    // todas las medidas
+    for (const precio of productoActivo.precios) {
+      await supabase
+        .from("producto_tarifas")
+        .update({
+          medida: precio.medida,
+          menudeo: precio.precioPieza,
+          mayoreo: precio.precioMayoreo,
+          piezas_por_tonelada:
+            precio.piezasPorTonelada,
+          carretilla: precio.precioCarretilla,
+          rango: precio.rango ?? "",
+          notas: precio.notas ?? "",
+        })
+        .eq("id", precio.id);
+    }
+
+    // salir de modo edición
+    actualizarProducto({
+      ...productoActivo,
+      precios: productoActivo.precios.map(
+        (p) => ({
+          ...p,
+          editando: false,
+        })
+      ),
+    });
+
+  } finally {
+    setGuardandoProducto(false);
+  }
+};
+
+const subirImagen = async (
+  e: React.ChangeEvent<HTMLInputElement>
+) => {
+  if (!productoActivo) return;
+
+  const file = e.target.files?.[0];
+  if (!file) return;
+
+  setSubiendoImagen(true);
+
+  const ext = file.name.split(".").pop();
+  const path = `aceros/${Date.now()}.${ext}`;
+
+  const { error } = await supabase.storage
+    .from("productos")
+    .upload(path, file);
+
+  if (error) {
+    setSubiendoImagen(false);
+    return;
+  }
+
+  const { data } = supabase.storage
+    .from("productos")
+    .getPublicUrl(path);
+
+  setProductoActivo({
+    ...productoActivo,
+    imagen: data.publicUrl,
+  });
+
+  setSubiendoImagen(false);
+};
+
   const editarPrecio = (
     index: number,
     campo: keyof PrecioAcero,
@@ -172,18 +365,31 @@ const precios =
 
     const nuevos = [...productoActivo.precios];
 
-const camposNumericos = [
+const esNumero = [
   "precioPieza",
   "precioMayoreo",
   "precioCarretilla",
-];
+  "piezasPorTonelada",
+].includes(campo as string);
 
 nuevos[index] = {
   ...nuevos[index],
-  [campo]: camposNumericos.includes(campo)
+  [campo]: esNumero ? Number(valor) : valor,
+};
+
+// calcular automáticamente el precio por tonelada
+const precioPieza =
+  campo === "precioPieza"
     ? Number(valor)
-    : valor,
-};;
+    : nuevos[index].precioPieza;
+
+const piezasPorTonelada =
+  campo === "piezasPorTonelada"
+    ? Number(valor)
+    : nuevos[index].piezasPorTonelada;
+
+nuevos[index].precioMayoreo =
+  precioPieza * piezasPorTonelada;
 
     actualizarProducto({
       ...productoActivo,
@@ -191,26 +397,14 @@ nuevos[index] = {
     });
   };
 
-const toggleEditar = async (
-  index: number
-) => {
-
+const toggleEditar = (index: number) => {
   if (!productoActivo) return;
 
-  const nuevos = [
-    ...productoActivo.precios,
-  ];
-
-  if (nuevos[index].editando) {
-
-    await guardarCambios(index);
-  }
+  const nuevos = [...productoActivo.precios];
 
   nuevos[index] = {
     ...nuevos[index],
-
-    editando:
-      !nuevos[index].editando,
+    editando: !nuevos[index].editando,
   };
 
   actualizarProducto({
@@ -230,29 +424,17 @@ const guardarCambios = async (
 
   await supabase
     .from("producto_tarifas")
-    .update({
-      medida: precio.medida,
-
-      menudeo:
-        precio.precioPieza,
-
-      mayoreo:
-        precio.precioMayoreo,
-
-      carretilla:
-        precio.precioCarretilla,
-
-      rango:
-        precio.rango,
-
-      notas:
-        precio.notas,
-    })
-    .eq(
-      "producto_id",
-      productoActivo.id
-    )
-    .eq("medida", precio.medida);
+  .update({
+    medida: precio.medida,
+    menudeo: precio.precioPieza,
+    mayoreo: precio.precioMayoreo,
+    piezas_por_tonelada:
+      precio.piezasPorTonelada,
+    carretilla: precio.precioCarretilla,
+    rango: precio.rango ?? "",
+    notas: precio.notas ?? "",
+  })
+  .eq("id", precio.id);
 };
 
 const eliminarPrecio = async (
@@ -264,14 +446,10 @@ const eliminarPrecio = async (
   const precio =
     productoActivo.precios[index];
 
-  await supabase
-    .from("producto_tarifas")
-    .delete()
-    .eq(
-      "producto_id",
-      productoActivo.id
-    )
-    .eq("medida", precio.medida);
+await supabase
+  .from("producto_tarifas")
+  .delete()
+  .eq("id", precio.id);
 
   actualizarProducto({
     ...productoActivo,
@@ -288,20 +466,15 @@ const agregarPrecio = async () => {
   if (!productoActivo) return;
 
   const nuevo = {
-    producto_id: productoActivo.id,
-
-    medida: "Nueva medida",
-
-    menudeo: 0,
-
-    mayoreo: 0,
-
-    carretilla: 0,
-
-    rango: "5-10 km",
-
-    notas: "Editar información",
-  };
+  producto_id: productoActivo.id,
+  medida: "Escribe la medida",
+  menudeo: 0,
+  mayoreo: 0,
+  piezas_por_tonelada: 0,
+  carretilla: 0,
+  rango: "5-10 km",
+  notas: "Editar información",
+};
 
   const { data, error } =
     await supabase
@@ -315,27 +488,21 @@ const agregarPrecio = async () => {
     return;
   }
 
-  const nuevoPrecio: PrecioAcero = {
-    medida: data.medida,
+const nuevoPrecio: PrecioAcero = {
+  id: data.id,
+  medida: data.medida,
+  precioPieza: Number(data.menudeo),
+  precioMayoreo: Number(data.mayoreo),
 
-    precioPieza: Number(
-      data.menudeo
-    ),
+  piezasPorTonelada: Number(
+    data.piezas_por_tonelada
+  ),
 
-    precioMayoreo: Number(
-      data.mayoreo
-    ),
-
-    precioCarretilla: Number(
-      data.carretilla
-    ),
-
-    rango: data.rango,
-
-    notas: data.notas,
-
-    editando: true,
-  };
+  precioCarretilla: Number(data.carretilla),
+  rango: data.rango,
+  notas: data.notas,
+  editando: true,
+};
 
   actualizarProducto({
     ...productoActivo,
@@ -386,6 +553,16 @@ const agregarPrecio = async () => {
         </div>
       </div>
 
+      <div className="flex justify-end mb-6">
+  <button
+    onClick={crearProducto}
+    className="bg-green-600 hover:bg-green-700 text-white px-6 py-4 rounded-2xl flex items-center gap-2"
+  >
+    <Plus size={20} />
+    Nuevo producto
+  </button>
+</div>
+
       {/* CONTENIDO */}
       <div className="max-w-7xl mx-auto px-6 py-14">
 
@@ -427,7 +604,10 @@ const agregarPrecio = async () => {
                 "
               >
                 <Image
-                  src={producto.imagen}
+                    src={
+                      producto.imagen ||
+                      "/placeholder-producto.jpg"
+                    }
                   alt={producto.nombre}
                   fill
                   className="
@@ -461,18 +641,20 @@ const agregarPrecio = async () => {
                   abrirModal(producto)
                 }
                 className="
-                  mt-4
-                  w-full
-                  bg-[#d7bea7]
-                  hover:bg-[#c7a789]
-                  text-[#3f2d21]
-                  font-semibold
-                  py-3
-                  rounded-full
-                  transition-all
-                  duration-300
-                  shadow-md
-                  hover:shadow-xl
+                      mt-6
+                      w-full
+                      bg-black
+                      hover:bg-gray-900
+                      text-white
+                      font-semibold
+                      py-3
+                      rounded-2xl
+                      transition-all
+                      duration-300
+                      hover:scale-[1.02]
+                      active:scale-95
+                      shadow-md
+                      hover:shadow-xl
                 "
               >
                 Ver precios
@@ -488,17 +670,18 @@ const agregarPrecio = async () => {
 
           <div
             className="
-              bg-[#f5ede6]
-              w-full
-              max-w-7xl
-              rounded-[35px]
-              p-8
-              md:p-14
-              relative
-              mx-auto
-              my-10
-            "
-          >
+            bg-white
+            w-full
+            max-w-7xl
+            rounded-[35px]
+            p-8
+            md:p-14
+            relative
+            mx-auto
+            my-10
+            shadow-2xl
+          "
+        >
 
             {/* BOTON REGRESAR */}
             <button
@@ -519,333 +702,454 @@ const agregarPrecio = async () => {
               Regresar
             </button>
 
-            {/* CONTENIDO */}
-            <div className="grid md:grid-cols-2 gap-12 items-start">
-
-              {/* IMAGEN */}
-              <div
-                className="
-                  relative
+            <input
+              value={productoActivo.nombre || ""}
+              placeholder="Nombre del producto"
+              onChange={(e) =>
+                setProductoActivo({
+                  ...productoActivo,
+                  nombre: e.target.value,
+                })
+              }
+              className="
+                  bg-transparent
+                  text-center
+                  text-3xl md:text-5xl
+                  font-black
+                  text-[#4b3425]
+                  placeholder:text-gray-300
+                  outline-none
                   w-full
-                  h-[350px]
-                  md:h-[450px]
-                  rounded-[30px]
-                  overflow-hidden
-                  shadow-2xl
-                "
-              >
-                <Image
-                  src={productoActivo.imagen}
-                  alt={productoActivo.nombre}
-                  fill
-                  className="object-cover"
-                />
-              </div>
+              "
+            />
 
-              {/* INFO */}
-              <div>
+            
+<div className="flex justify-end gap-4 mb-10">
 
-                <h2
-                  className="
-                    text-4xl
-                    md:text-5xl
-                    font-black
-                    mb-4
-                    text-[#5c3d2b]
-                  "
-                >
-                  {productoActivo.nombre}
-                </h2>
-
-                <p
-                  className="
-                    text-lg
-                    text-[#6d5747]
-                    mb-10
-                  "
-                >
-                  {productoActivo.descripcion}
-                </p>
-
-                {/* PRECIOS */}
-                <div className="space-y-6">
-
-                  {productoActivo.precios.map(
-                    (precio, index) => (
-                      <div
-                        key={index}
-                        className="
-                          bg-white
-                          rounded-[28px]
-                          p-6
-                          border
-                          border-[#e7d8ca]
-                          shadow-md
-                        "
-                      >
-
-                        {/* ELIMINAR */}
-                        {precio.editando && (
-                          <button
-                            onClick={() =>
-                              eliminarPrecio(
-                                index
-                              )
-                            }
-                            className="
-                              mb-5
-                              bg-red-500
-                              hover:bg-red-600
-                              text-white
-                              w-10
-                              h-10
-                              rounded-full
-                              flex
-                              items-center
-                              justify-center
-                            "
-                          >
-                            <Minus size={18} />
-                          </button>
-                        )}
-
-                        {/* MEDIDA */}
-                        <div className="mb-6">
-
-                          <div
-                            className="
-                              flex
-                              items-center
-                              gap-2
-                              mb-3
-                            "
-                          >
-                            <Ruler
-                              size={22}
-                              className="text-[#9f6f47]"
-                            />
-
-                            <span
-                              className="
-                                text-2xl
-                                font-bold
-                                text-[#4b3425]
-                              "
-                            >
-                              Medida
-                            </span>
-                          </div>
-
-                          <input
-                            disabled={
-                              !precio.editando
-                            }
-                            value={precio.medida}
-                            onChange={(e) =>
-                              editarPrecio(
-                                index,
-                                "medida",
-                                e.target.value
-                              )
-                            }
-                            className="
-                              w-full
-                              bg-transparent
-                              border-b-2
-                              border-[#d6c1ae]
-                              py-2
-                              text-2xl
-                              font-semibold
-                              outline-none
-                              text-[#4b3425]
-                            "
-                          />
-                        </div>
-
-{/* PRECIOS */}
-<div
-  className="
-    bg-[#f8f5f1]
-    rounded-[28px]
-    p-8
-    mb-6
-  "
->
-  <div
+  <button
+    onClick={guardarProducto}
+    disabled={guardandoProducto}
     className="
-      grid
-      grid-cols-2
-      gap-8
-      items-center
+      bg-[#0ea843]
+      hover:bg-[#0b923a]
+      text-white
+      px-6
+      py-3
+      rounded-xl
+      shadow-md
     "
   >
+    {guardandoProducto
+      ? "Guardando..."
+      : modo === "crear"
+      ? "Crear producto"
+      : "Guardar cambios"}
+  </button>
 
-                {/* PIEZA */}
-                <div className="text-center">
+  <button
+    onClick={agregarPrecio}
+    className="
+      bg-[#c49563]
+      hover:bg-[#b68450]
+      text-white
+      px-6
+      py-3
+      rounded-xl
+      shadow-md
+    "
+  >
+    + Agregar medida
+  </button>
 
-                <div className="text-gray-500 mb-2">
-                    Pieza
-                </div>
+  <button
+    onClick={eliminarProducto}
+    className="
+      bg-[#1f1f1f]
+      hover:bg-black
+      text-white
+      px-6
+      py-3
+      rounded-xl
+      shadow-md
+    "
+  >
+    Eliminar
+  </button>
 
-                <div
-                    className="
-                    flex
-                    items-center
-                    justify-center
-                    "
-                >
-                    <span
-                    className="
-                        text-3xl
-                        font-black
-                        text-[#9f6f47]
-                        mr-1
-                    "
-                    >
-                    $
-                    </span>
+</div>
 
-                    <input
-                    disabled={!precio.editando}
-                    type="number"
-                    value={precio.precioPieza}
-                    onChange={(e) =>
-                        editarPrecio(
-                        index,
-                        "precioPieza",
-                        Number(e.target.value)
-                        )
-                    }
-                    className="
-                        bg-transparent
-                        text-center
-                        text-4xl
-                        font-black
-                        w-full
-                        outline-none
-                        text-[#2d2d2d]
-                    "
-                    />
-                </div>
-                </div>
-        </div>
+            {/* CONTENIDO */}
+<div className="grid md:grid-cols-[420px_1fr] gap-12 items-start">
+
+  {/* COLUMNA IZQUIERDA */}
+  <div>
+    <div className="relative w-full h-[350px] md:h-[450px] rounded-[30px] overflow-hidden shadow-2xl">
+      <Image
+          src={
+    productoActivo.imagen ||
+    "/placeholder-producto.jpg"
+  }
+        alt={productoActivo.nombre}
+        fill
+        className="object-cover
+        group-hover:scale-110
+        transition-transform
+        duration-500
+        "
+      />
     </div>
 
-                        {/* NOTAS */}
-                        <textarea
-                          disabled={
-                            !precio.editando
-                          }
-                          value={precio.notas}
-                          onChange={(e) =>
-                            editarPrecio(
-                              index,
-                              "notas",
-                              e.target.value
-                            )
-                          }
-                          className="
-                            w-full
-                            bg-[#faf7f4]
-                            border
-                            border-[#e7d8ca]
-                            rounded-[24px]
-                            p-5
-                            min-h-[130px]
-                            resize-none
-                            outline-none
-                            text-[#4b3425]
-                            mb-6
-                          "
-                        />
+<div className="mt-5 space-y-3">
 
-                        {/* BOTONES */}
-                        <div className="flex flex-wrap gap-4">
+  <div>
+    <p className="text-sm font-semibold text-[#6b5647] mb-2">
+      URL de la imagen
+    </p>
 
-                          <button
-                            onClick={() =>
-                              toggleEditar(
-                                index
-                              )
-                            }
-                            className={`
-                              px-6
-                              py-4
-                              rounded-2xl
-                              text-white
-                              flex
-                              items-center
-                              gap-3
-                              shadow-lg
-                              transition
-                              ${
-                                precio.editando
-                                  ? "bg-green-600"
-                                  : "bg-blue-600"
-                              }
-                            `}
-                          >
-                            {precio.editando ? (
-                              <>
-                                <Check size={22} />
-                                Guardar
-                              </>
-                            ) : (
-                              <>
-                                <Pencil size={22} />
-                                Editar
-                              </>
-                            )}
-                          </button>
+<input
+  type="text"
+  value={productoActivo.imagen || ""}
+  placeholder="Pega aquí la URL de la imagen..."
+  onChange={(e) =>
+    setProductoActivo({
+      ...productoActivo,
+      imagen: e.target.value,
+    })
+  }
+  className="
+    w-full
+    px-4
+    py-3
+    rounded-xl
+    border
+    border-[#d8ccc0]
+    bg-white
+    text-[#4b3425]
+    text-base
+    font-medium
+    outline-none
+    focus:ring-2
+    focus:ring-[#c8a37c]
+  "
+/>
+  </div>
 
-                          <button
-                            onClick={() =>
-                              eliminarPrecio(
-                                index
-                              )
-                            }
-                            className="
-                              bg-black
-                              text-white
-                              px-6
-                              py-4
-                              rounded-2xl
-                              flex
-                              items-center
-                              gap-3
-                              shadow-lg
-                            "
-                          >
-                            <Trash2 size={22} />
-                            Eliminar
-                          </button>
+  <label
+    className="
+      flex
+      justify-center
+      items-center
+      w-full
+      py-3
+      rounded-xl
+      bg-[#ede6df]
+      hover:bg-[#e4dbd2]
+      text-[#4b3425]
+      font-semibold
+      cursor-pointer
+      transition
+    "
+  >
+    Seleccionar imagen
 
-                        </div>
-                      </div>
-                    )
-                  )}
-                </div>
+    <input
+      type="file"
+      hidden
+      onChange={subirImagen}
+    />
+  </label>
 
-                {/* AGREGAR */}
-                <button
-                  onClick={agregarPrecio}
-                  className="
-                    mt-8
-                    bg-green-600
-                    hover:bg-green-700
-                    text-white
-                    px-6
-                    py-4
-                    rounded-2xl
-                    flex
-                    items-center
-                    gap-3
-                    shadow-lg
-                  "
-                >
-                  <Plus size={22} />
-                  Agregar medida
-                </button>
+      {subiendoImagen && (
+        <p className="text-blue-500 mt-2">
+          Subiendo imagen...
+        </p>
+      )}
+    </div>
+  </div>
+
+  {/* COLUMNA DERECHA */}
+ <div className="space-y-6">
+
+
+
+{productoActivo.precios.map((precio, index) => (
+  
+  
+  <div
+    key={precio.id}
+    className="
+        bg-white
+        border
+        border-[#ece3da]
+        rounded-[32px]
+        p-8
+        shadow-lg
+        space-y-6
+    "
+  >
+      
+      {/* MEDIDA */}
+      <div className="mb-6">
+        <div className="flex items-center gap-2 mb-3">
+          <Ruler size={22} className="text-[#9f6f47]" />
+<h3
+  className="
+    text-xl
+    font-bold
+    text-[#4b3425]
+    border-b
+    border-[#ece3da]
+    pb-4
+  "
+>
+  Medida #{index + 1}
+</h3>
+        </div>
+    
+
+        <input
+          disabled={!precio.editando}
+          value={precio.medida}
+          onChange={(e) =>
+            editarPrecio(index, "medida", e.target.value)
+          }
+          className="
+w-full
+bg-[#f7f3ef]
+border
+border-[#d8ccc0]
+rounded-2xl
+p-4
+text-center
+text-2xl md:text-4xl
+font-black
+text-[#4b3425]
+  "
+        />
+        </div>
+  
+
+      {/* PRECIOS */}
+<div
+  className="
+    bg-[#ebe5df]
+    rounded-[35px]
+    p-8
+    border
+    border-[#d8ccc0]
+  "
+>
+
+  
+  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+
+    {/* PIEZA */}
+    <div className="text-center">
+      <p className="text-gray-500 text-xl mb-2">
+        Pieza
+      </p>
+
+      <div className="relative">
+<span
+  className="
+    absolute
+    left-4
+    top-1/2
+    -translate-y-1/2
+    text-2xl md:text-3xl
+    font-bold
+    text-[#4b3425]
+  "
+>
+  $
+</span>
+
+        <input
+          disabled={!precio.editando}
+          type="number"
+          value={precio.precioPieza}
+          onChange={(e) =>
+            editarPrecio(
+              index,
+              "precioPieza",
+              Number(e.target.value)
+            )
+          }
+          className="
+            w-full
+            pl-12
+            bg-[#f7f3ef]
+            border
+            border-[#d8ccc0]
+            rounded-2xl
+            p-4
+            text-center
+            text-2xl md:text-4xl
+            font-black
+            text-[#4b3425]
+                      "
+        />
+      </div>
+    </div>
+
+    {/* TONELADA */}
+    <div className="text-center">
+      <p className="text-gray-500 text-xl mb-2">
+        Tonelada
+      </p>
+
+<div className="relative">
+  <span
+    className="
+      absolute
+      left-4
+      top-1/2
+      -translate-y-1/2
+      text-3xl
+      font-bold
+      text-green-700
+      z-10
+    "
+  >
+    $
+  </span>
+
+  <input
+    disabled
+    type="number"
+    value={precio.precioMayoreo}
+    className="
+  w-full
+  pl-12
+  bg-[#f7f3ef]
+  border
+  border-[#d8ccc0]
+  rounded-2xl
+  p-4
+  text-center
+  text-2xl md:text-4xl
+  font-black
+  text-[#4b3425]
+    "
+  />
+</div>
+
+        <div className="text-center mt-6">
+          <p className="text-gray-500 text-lg mb-2">
+            Piezas por tonelada
+          </p>
+
+          <input
+            disabled={!precio.editando}
+            type="number"
+            value={precio.piezasPorTonelada}
+            onChange={(e) =>
+              editarPrecio(
+                index,
+                "piezasPorTonelada",
+                Number(e.target.value)
+              )
+            }
+            className="
+  w-full
+  pl-12
+  bg-[#f7f3ef]
+  border
+  border-[#d8ccc0]
+  rounded-2xl
+  p-4
+  text-center
+  text-2xl md:text-4xl
+  font-black
+  text-[#4b3425]
+"
+          />
+  </div> 
+</div> 
+</div> 
+</div> 
+
+      {/* NOTAS */}
+<textarea
+  disabled={!precio.editando}
+  value={precio.notas}
+  onChange={(e) =>
+    editarPrecio(
+      index,
+      "notas",
+      e.target.value
+    )
+  }
+  className="
+      w-full
+      min-h-[140px]
+      rounded-[30px]
+      border
+      border-[#d8ccc0]
+      bg-[#f7f3ef]
+      p-6
+      text-lg
+      text-[#4b3425]
+      outline-none
+      resize-none
+      disabled:bg-transparent
+      disabled:border-transparent
+  "
+/>
+
+      {/* ACCIONES */}
+<div className="flex gap-4 mt-6">
+
+      <button
+        onClick={() => toggleEditar(index)}
+        className="
+          bg-[#4b3425]
+          hover:bg-[#3b2a1f]
+          text-white
+          px-8
+          py-4
+          rounded-2xl
+          flex
+          items-center
+          gap-2
+        "
+      >
+        <Pencil size={18} />
+
+    {precio.editando
+      ? "Listo"
+      : "Editar"}
+      </button>
+
+    {precio.editando && (
+      <button
+        onClick={() =>
+          eliminarPrecio(index)
+        }
+        className="
+      bg-[#f1e8df]
+      hover:bg-[#e7dbd0]
+      text-[#8b5e3c]
+      border
+      border-[#d8ccc0]
+      px-6
+      py-3
+      rounded-xl
+      shadow-md
+        "
+      >
+        <Trash2 size={18} />
+        Eliminar
+      </button>
+    )}
+
+</div>
+
+
+
+    </div>
+  ))}
+
 
               </div>
             </div>

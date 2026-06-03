@@ -15,7 +15,7 @@ export default function ElectricidadPage() {
       {/* HERO */}
       <section className="relative w-full h-[320px] overflow-hidden">
         <Image
-          src="/electricidad/banner.jpg"
+          src="/electricidad/banner.jpeg"
           alt="Electricidad"
           fill
           className="object-cover"
@@ -300,101 +300,247 @@ export default function ElectricidadPage() {
           </div>
         </div>
 
-        {/* SERVICIOS */}
-        <div className="grid md:grid-cols-3 gap-8">
+{/* NUEVO APARTADO */}
+<div
+  className="
+    bg-white
+    rounded-[40px]
+    overflow-hidden
+    shadow-2xl
+    mb-24
+  "
+>
+  <div className="grid lg:grid-cols-2">
 
+    {/* IMAGEN */}
+    <div className="relative h-[350px] lg:h-auto">
+      <Image
+        src="/electricidad/plano.jpeg"
+        alt="Diseño de sistemas eléctricos"
+        fill
+        className="object-cover"
+      />
+
+      <div className="absolute inset-0 bg-black/25" />
+    </div>
+
+    {/* CONTENIDO */}
+    <div className="p-10 md:p-14 flex flex-col justify-center">
+
+      <div
+        className="
+          inline-flex
+          items-center
+          gap-3
+          bg-yellow-100
+          text-yellow-700
+          px-5
+          py-2
+          rounded-full
+          font-bold
+          mb-6
+          w-fit
+        "
+      >
+        <Bolt size={20} />
+        Diseño de Sistemas Eléctricos
+      </div>
+
+      <h3
+        className="
+          text-4xl
+          font-black
+          text-[#2d2d2d]
+          mb-6
+        "
+      >
+        Soluciones modernas y eficientes
+      </h3>
+
+      <p
+        className="
+          text-gray-600
+          text-lg
+          leading-relaxed
+          mb-8
+        "
+      >
+        Analizamos el consumo energético y diseñamos
+        sistemas eléctricos seguros, eficientes y
+        preparados para el crecimiento futuro.
+      </p>
+
+      {/* LISTA */}
+      <div className="space-y-4 mb-10">
+
+        <div className="flex items-center gap-4">
           <div
             className="
-              bg-white
-              rounded-[35px]
-              p-10
-              shadow-xl
+              w-11
+              h-11
+              rounded-full
+              bg-yellow-100
+              flex
+              items-center
+              justify-center
             "
           >
-            <Wrench
-              size={38}
-              className="text-yellow-600 mb-5"
+            <Lightbulb
+              size={20}
+              className="text-yellow-600"
             />
-
-            <h3
-              className="
-                text-2xl
-                font-black
-                text-[#2d2d2d]
-                mb-4
-              "
-            >
-              Mantenimiento
-            </h3>
-
-            <p className="text-gray-600 leading-relaxed">
-              Diagnóstico, reparación y mantenimiento
-              preventivo de instalaciones eléctricas.
-            </p>
           </div>
 
+          <span className="font-semibold text-[#2d2d2d]">
+            Iluminación arquitectónica
+          </span>
+        </div>
+
+        <div className="flex items-center gap-4">
           <div
             className="
-              bg-white
-              rounded-[35px]
-              p-10
-              shadow-xl
+              w-11
+              h-11
+              rounded-full
+              bg-yellow-100
+              flex
+              items-center
+              justify-center
             "
           >
             <Bolt
-              size={38}
-              className="text-yellow-600 mb-5"
+              size={20}
+              className="text-yellow-600"
             />
-
-            <h3
-              className="
-                text-2xl
-                font-black
-                text-[#2d2d2d]
-                mb-4
-              "
-            >
-              Media y Baja Tensión
-            </h3>
-
-            <p className="text-gray-600 leading-relaxed">
-              Instalación y distribución eléctrica
-              para proyectos residenciales,
-              comerciales e industriales.
-            </p>
           </div>
 
+          <span className="font-semibold text-[#2d2d2d]">
+            Optimización energética
+          </span>
+        </div>
+
+        <div className="flex items-center gap-4">
           <div
             className="
-              bg-white
-              rounded-[35px]
-              p-10
-              shadow-xl
+              w-11
+              h-11
+              rounded-full
+              bg-yellow-100
+              flex
+              items-center
+              justify-center
             "
           >
             <ShieldCheck
-              size={38}
-              className="text-yellow-600 mb-5"
+              size={20}
+              className="text-yellow-600"
             />
-
-            <h3
-              className="
-                text-2xl
-                font-black
-                text-[#2d2d2d]
-                mb-4
-              "
-            >
-              Seguridad Eléctrica
-            </h3>
-
-            <p className="text-gray-600 leading-relaxed">
-              Protección, normativas y sistemas
-              diseñados para máxima seguridad.
-            </p>
           </div>
 
+          <span className="font-semibold text-[#2d2d2d]">
+            Sistemas eficientes y seguros
+          </span>
         </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+      {/* CIERRE FINAL */}
+<div
+  className="
+    bg-black
+    rounded-[45px]
+    overflow-hidden
+    shadow-2xl
+    mt-24
+  "
+>
+  <div
+    className="
+      grid
+      lg:grid-cols-2
+      gap-10
+      items-center
+      p-10
+      md:p-16
+    "
+  >
+
+    {/* IMAGEN */}
+    <div
+      className="
+        relative
+        h-[260px]
+        rounded-[30px]
+        overflow-hidden
+      "
+    >
+      <Image
+        src="/electricidad/subestacion.jpeg"
+        alt="Media y alta tensión"
+        fill
+        className="object-cover"
+      />
+    </div>
+
+    {/* TEXTO */}
+    <div className="text-white">
+
+      <h3
+        className="
+          text-3xl
+          md:text-4xl
+          font-black
+          mb-8
+          uppercase
+        "
+      >
+        Media y Alta Tensión
+      </h3>
+
+      <ul
+        className="
+          space-y-4
+          text-lg
+          text-white/90
+          font-medium
+        "
+      >
+        <li className="flex items-center gap-3">
+          <Bolt className="text-yellow-400" size={22} />
+          Subestaciones
+        </li>
+
+        <li className="flex items-center gap-3">
+          <Bolt className="text-yellow-400" size={22} />
+          Transformadores
+        </li>
+
+        <li className="flex items-center gap-3">
+          <Bolt className="text-yellow-400" size={22} />
+          Distribución eléctrica
+        </li>
+      </ul>
+    </div>
+  </div>
+
+  {/* CTA FINAL */}
+  <div
+    className="
+      border-t
+      border-white/10
+      py-14
+      px-6
+      text-center
+    "
+  >
+
+
+  </div>
+</div>
+
       </section>
     </div>
   );

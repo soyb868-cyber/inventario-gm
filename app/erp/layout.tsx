@@ -1,6 +1,11 @@
 import Sidebar from "../components/Sidebar";
 import Topbar from "../components/Topbar";
 
+
+export const metadata = {
+  manifest: "/manifest.json",
+};
+
 export default function ERPLayout({
   children,
 }: {

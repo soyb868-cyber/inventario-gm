@@ -11,10 +11,12 @@
   "dependencies": {
     "@supabase/supabase-js": "^2.106.0",
     "framer-motion": "^12.39.0",
+    "idb": "^8.0.3",
     "lucide-react": "^1.16.0",
-    "next": "16.2.6",
-    "react": "19.2.4",
-    "react-dom": "19.2.4",
+    "next": "^15.5.18",
+    "next-pwa": "^5.6.0",
+    "react": "^19.2.6",
+    "react-dom": "^19.2.6",
     "react-icons": "^5.6.0",
     "swiper": "^12.1.4"
   },
@@ -24,7 +26,7 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
-    "eslint-config-next": "16.2.6",
+    "eslint-config-next": "^15.5.19",
     "tailwindcss": "^4",
     "typescript": "^5"
   }

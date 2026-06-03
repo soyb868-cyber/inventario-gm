@@ -9,8 +9,6 @@ import {
   Trash2,
   Plus,
   X,
-  Star,
-  Package,
   Zap,
 } from "lucide-react";
 
@@ -22,6 +20,8 @@ type Caracteristica = {
 
 type Producto = {
   id: number;
+
+  codigo: string;
 
   nombre: string;
 
@@ -76,6 +76,8 @@ const [productos, setProductos] = useState<Producto[]>([]);
 const [productoActivo, setProductoActivo] =
   useState<Producto | null>(null);
 
+const [subiendoImagen, setSubiendoImagen] =
+  useState(false);
 
 
 useEffect(() => {
@@ -89,13 +91,11 @@ let query = supabase
       id,
       caracteristica
     )
-  `)
-  .eq("categoria_slug", "linea-blanca");
+  `);
 
 if (slug !== "todos") {
-  query = query.eq(
-    "subcategoria_slug",
-    slug
+  query = query.or(
+    `categoria_slug.eq.${slug},subcategoria_slug.eq.${slug}`
   );
 }
 
@@ -114,11 +114,11 @@ const { data, error } = await query.order(
     const formateados =
       data?.map((p) => ({
         id: p.id,
+        codigo: p.codigo,
         nombre: p.nombre,
         imagen: p.imagen,
         descripcion: p.descripcion,
         categoria_slug: p.categoria_slug,
-subcategoria: p.subcategoria,
 subcategoria_slug: p.subcategoria_slug,
         marca: p.marca,
         precio: p.precio,
@@ -233,28 +233,47 @@ const toggleEditar = async () => {
 
   // SI ESTABA EDITANDO -> GUARDAR
   if (productoActivo.editando) {
-    const { error } = await supabase
+
+        const { error } = await supabase
       .from("productos")
-      .update({
-        nombre: productoActivo.nombre,
-        descripcion: productoActivo.descripcion,
-        marca: productoActivo.marca,
-        precio: productoActivo.precio,
-        precio_anterior:
-          productoActivo.precioAnterior,
-        existencia: productoActivo.existencia,
-        modelo: productoActivo.modelo,
-        color: productoActivo.color,
-        voltaje: productoActivo.voltaje,
-        destacado: productoActivo.destacado,
-      })
+.update({
+  codigo: productoActivo.codigo,
+  nombre: productoActivo.nombre,
+  imagen: productoActivo.imagen,
+  descripcion: productoActivo.descripcion,
+
+  categoria_slug:
+    productoActivo.categoria_slug,
+
+  subcategoria_slug:
+    productoActivo.subcategoria_slug,
+
+  marca: productoActivo.marca,
+
+  precio: productoActivo.precio,
+
+  precio_anterior:
+    productoActivo.precioAnterior,
+
+  existencia:
+    productoActivo.existencia,
+
+  modelo: productoActivo.modelo,
+
+  color: productoActivo.color,
+
+  voltaje: productoActivo.voltaje,
+
+  destacado:
+    productoActivo.destacado,
+})
       .eq("id", productoActivo.id);
 
     if (error) {
       console.error(error);
       return;
     }
-  }
+
   await supabase
   .from("producto_caracteristicas")
   .delete()
@@ -272,6 +291,7 @@ await supabase
       })
     )
   );
+  }
 
   actualizarProducto({
     ...productoActivo,
@@ -298,7 +318,108 @@ setProductos((prev) =>
   )
 );
 
+
 cerrarModal();
+};
+
+  const subirImagen = async (
+  e: React.ChangeEvent<HTMLInputElement>
+) => {
+  if (
+    !e.target.files ||
+    !e.target.files[0] ||
+    !productoActivo
+  )
+    return;
+
+  try {
+    setSubiendoImagen(true);
+
+    const archivo = e.target.files[0];
+
+    const extension =
+      archivo.name.split(".").pop();
+
+    const nombreArchivo =
+      `${Date.now()}.${extension}`;
+
+    const ruta =
+      `productos/${nombreArchivo}`;
+
+    const { error: uploadError } =
+      await supabase.storage
+        .from("productos")
+        .upload(ruta, archivo);
+
+    if (uploadError) {
+      console.error(uploadError);
+      return;
+    }
+
+    const { data } = supabase.storage
+      .from("productos")
+      .getPublicUrl(ruta);
+
+    editarCampo(
+      "imagen",
+      data.publicUrl
+    );
+  } catch (error) {
+    console.error(error);
+  } finally {
+    setSubiendoImagen(false);
+  }
+};
+
+const crearProducto = async () => {
+  const { data, error } = await supabase
+    .from("productos")
+    .insert({
+      nombre: "Nuevo producto",
+      codigo: null,
+      imagen: "",
+      descripcion: "",
+
+      categoria_slug:
+        slug === "todos"
+          ? ""
+          : slug,
+      subcategoria_slug: "",
+
+      marca: "",
+
+      precio: 0,
+      precio_anterior: 0,
+
+      existencia: 0,
+
+      modelo: "",
+      color: "",
+      voltaje: "",
+
+      destacado: false,
+    })
+    .select()
+    .single();
+
+  if (error) {
+    console.error(error);
+    return;
+  }
+
+
+  const nuevoProducto: Producto = {
+    ...data,
+    caracteristicas: [],
+    editando: true,
+  };
+
+  setProductos((prev) => [
+    nuevoProducto,
+    ...prev,
+  ]);
+
+  setProductoActivo(nuevoProducto);
 };
 
   return (
@@ -308,7 +429,7 @@ cerrarModal();
       <div className="relative w-full h-[260px] md:h-[320px] overflow-hidden">
 
         <Image
-          src="/lineablanca/banner-lineablanca.jpg"
+          src="/lineablanca/banner-linea-blanca.avif"
           alt="Línea Blanca"
           fill
           sizes="(max-width: 768px) 100vw, 33vw"
@@ -350,10 +471,31 @@ cerrarModal();
         {productos.length === 0 && (
   <div className="text-center py-20">
     <h2 className="text-3xl font-bold text-gray-500">
-      Cargando Productos
+      Cargando Productos 
     </h2>
   </div>
 )}
+
+<div className="flex justify-end mb-8">
+  <button
+    onClick={crearProducto}
+    className="
+      bg-green-600
+      hover:bg-green-700
+      text-white
+      px-6
+      py-4
+      rounded-2xl
+      flex
+      items-center
+      gap-2
+      shadow-lg
+    "
+  >
+    <Plus size={22} />
+    Nuevo Producto
+  </button>
+</div>
         {/* GRID */}
         <div
           className="
@@ -364,108 +506,141 @@ cerrarModal();
             gap-8
           "
         >
-          {productosFiltrados.map((producto) => (
 
-            <div
-              key={producto.id}
-              className="
-                group
-                bg-white
-                rounded-[30px]
-                overflow-hidden
-                shadow-md
-                hover:shadow-2xl
-                transition-all
-                duration-300
-                hover:-translate-y-1
-              "
-            >
 
+{productosFiltrados.map((producto) => {
+
+  const nombreNormalizado = producto.nombre
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+
+const tieneCalefaccion =
+  nombreNormalizado.includes("calefaccion");
+
+  const esSoloFrio =
+    nombreNormalizado.includes("solo frio") ||
+    (
+      nombreNormalizado.includes("frio") &&
+      !nombreNormalizado.includes("calor")
+    );
+
+
+  return (
+
+    <div
+      key={producto.id}
+      className="
+        group
+        relative
+        bg-white
+        rounded-[30px]
+        overflow-hidden
+        shadow-md
+        hover:shadow-2xl
+        transition-all
+        duration-300
+        hover:-translate-y-1
+
+        flex
+        flex-col
+        h-full
+      "
+    >
+
+{producto.subcategoria_slug === "aires-acondicionados" && (
+  <div className="absolute top-3 left-3 z-20">
+
+      {tieneCalefaccion ? (
+        <div className="
+          bg-red-500
+          text-white
+          text-xs
+          font-bold
+          px-3
+          py-1
+          rounded-full
+          shadow-lg
+        ">
+          🔥 Con Calefacción
+        </div>
+      ) : esSoloFrio ? (
+      <div className="
+        bg-blue-500
+        text-white
+        text-xs
+        font-bold
+        px-3
+        py-1
+        rounded-full
+        shadow-lg
+      ">
+        ❄️ Solo Frío
+      </div>
+    ) : null}
+
+  </div>
+)}
               {/* IMAGEN */}
-              <div
-                className="
-                  relative
-                  w-full
-                  h-[240px]
-                  overflow-hidden
-                "
-              >
+<div
+  className="
+    w-full
+    h-[170px]
+    bg-white
+    flex
+    items-end
+    justify-center
+    overflow-hidden
+    pt-2
+  "
+>
 
-                <Image
-                  src={producto.imagen}
-                  alt={producto.nombre}
-                  fill
-                  sizes="(max-width: 768px) 100vw, 33vw"
-                  className="
-                    object-cover
-                    group-hover:scale-110
-                    transition-transform
-                    duration-500
-                  "
-                />
+<Image
+  src={
+    producto.imagen?.trim()
+      ? producto.imagen
+      : "/sin-imagen.png"
+  }
+  alt={producto.nombre}
+  width={260}
+  height={160}
+  quality={100}
+    className="
+      object-contain
+      max-h-[150px]
+      w-auto
+      group-hover:scale-105
+      transition-transform
+      duration-500
+    "
+  />
 
-                {/* BADGE */}
-                {producto.destacado && (
-
-                  <div
-                    className="
-                      absolute
-                      top-4
-                      left-4
-                      bg-yellow-400
-                      text-black
-                      px-4
-                      py-2
-                      rounded-full
-                      font-bold
-                      text-sm
-                      flex
-                      items-center
-                      gap-2
-                    "
-                  >
-                    <Star size={16} />
-                    Oferta
-                  </div>
-
-                )}
-              </div>
+</div>
 
               {/* INFO */}
-              <div className="p-5">
+              <div className="p-5 flex flex-col flex-1">
 
-                <div className="text-sm text-gray-500 mb-1">
-                  {producto.marca}
-                </div>
+              <div className="text-sm text-gray-500">
+                {producto.marca}
+              </div>
+
+              <div className="text-xs text-gray-400 mb-2 font-medium">
+                Código: {producto.codigo}
+              </div>
 
                 <h2
                   className="
                     text-xl
                     font-bold
                     text-[#3f2d21]
-                    min-h-[60px]
+                    min-h-[96px]
                   "
                 >
                   {producto.nombre}
                 </h2>
 
                 {/* PRECIOS */}
-                <div className="mt-4">
-
-                  {producto.precioAnterior && (
-
-                    <div
-                      className="
-                        text-gray-400
-                        line-through
-                        text-lg
-                      "
-                    >
-                      $
-                      {producto.precioAnterior.toLocaleString()}
-                    </div>
-
-                  )}
+                <div className="mt-auto pt-4">
 
                   <div
                     className="
@@ -474,27 +649,14 @@ cerrarModal();
                       text-[#9f6f47]
                     "
                   >
-                    $
-                    {(producto.precio || 0)
-  .toLocaleString()}
+ {new Intl.NumberFormat("es-MX", {
+  style: "currency",
+  currency: "MXN",
+  minimumFractionDigits: 2,
+}).format(producto.precio || 0)}
                   </div>
                 </div>
 
-                {/* EXISTENCIA */}
-                <div
-                  className="
-                    flex
-                    items-center
-                    gap-2
-                    mt-4
-                    text-green-700
-                    font-semibold
-                  "
-                >
-                  <Package size={18} />
-
-                  {producto.existencia} disponibles
-                </div>
 
                 {/* BOTON */}
                 <button
@@ -502,18 +664,20 @@ cerrarModal();
                     abrirModal(producto)
                   }
                   className="
-                    mt-5
-                    w-full
-                    bg-[#d7bea7]
-                    hover:bg-[#c7a789]
-                    text-[#3f2d21]
-                    font-semibold
-                    py-3
-                    rounded-full
-                    transition-all
-                    duration-300
-                    shadow-md
-                    hover:shadow-xl
+                      mt-6
+                      w-full
+                      bg-black
+                      hover:bg-gray-900
+                      text-white
+                      font-semibold
+                      py-3
+                      rounded-2xl
+                      transition-all
+                      duration-300
+                      hover:scale-[1.02]
+                      active:scale-95
+                      shadow-md
+                      hover:shadow-xl
                   "
                 >
                   Ver producto
@@ -522,7 +686,8 @@ cerrarModal();
               </div>
             </div>
 
-          ))}
+  );
+})}
         </div>
       </div>
 
@@ -555,26 +720,92 @@ cerrarModal();
           >
 
             {/* CERRAR */}
-            <button
-              onClick={cerrarModal}
-              className="
-                absolute
-                top-6
-                right-6
-                bg-white
-                w-14
-                h-14
-                rounded-full
-                flex
-                items-center
-                justify-center
-                shadow-lg
-              "
-            >
-              <X size={28} />
-            </button>
+<button
+  onClick={cerrarModal}
+  className="
+    absolute
+    top-3
+    right-3
+    md:top-6
+    md:right-6
+
+    bg-black
+    text-white
+
+    w-12
+    h-12
+    md:w-14
+    md:h-14
+
+    rounded-full
+    flex
+    items-center
+    justify-center
+
+    shadow-xl
+    z-50
+  "
+>
+  <X size={24} />
+</button>
 
             <div className="grid md:grid-cols-2 gap-14">
+
+              {/* ETIQUETA CLIMA */}
+{/* ETIQUETA CLIMA */}
+{productoActivo.subcategoria_slug === "aires-acondicionados" && (() => {
+
+const nombreNormalizado = productoActivo.nombre
+  .toLowerCase()
+  .normalize("NFD")
+  .replace(/[\u0300-\u036f]/g, "");
+
+const tieneCalefaccion =
+  nombreNormalizado.includes("calefaccion");
+
+const esSoloFrio =
+  nombreNormalizado.includes("solo frio");
+
+  return (
+    <div className="absolute top-4 left-4 z-10">
+
+      {tieneCalefaccion ? (
+
+        <div className="
+          bg-gradient-to-r
+          from-blue-500
+          to-red-500
+          text-white
+          text-xs
+          font-bold
+          px-4
+          py-2
+          rounded-full
+          shadow-lg
+        ">
+          🔥 Con Calefacción
+        </div>
+
+      ) : esSoloFrio ? (
+
+        <div className="
+          bg-blue-500
+          text-white
+          text-xs
+          font-bold
+          px-4
+          py-2
+          rounded-full
+          shadow-lg
+        ">
+          ❄️ Solo Frío
+        </div>
+
+      ) : null}
+
+    </div>
+  );
+})()}
 
               {/* IMAGEN */}
               <div
@@ -582,20 +813,32 @@ cerrarModal();
                   relative
                   w-full
                   h-[420px]
-                  md:h-[620px]
+                  md:h-[450px]
                   rounded-[35px]
                   overflow-hidden
                   shadow-2xl
+                  bg-white
+                  p-8
+                  flex
+                  items-center
+                  justify-center
                 "
               >
 
-                <Image
-                  src={productoActivo.imagen}
-                  alt={productoActivo.nombre}
-                  fill
-                  sizes="(max-width: 768px) 100vw, 33vw"
-                  className="object-cover"
-                />
+              <Image
+                src={
+                  productoActivo.imagen?.trim()
+                    ? productoActivo.imagen
+                    : "/sin-imagen.png"
+                }
+                alt={productoActivo.nombre}
+                fill
+                sizes="(max-width: 768px) 100vw, 33vw"
+                className="
+                  object-contain
+                  p-6
+                "
+              />
 
               </div>
 
@@ -603,49 +846,163 @@ cerrarModal();
               <div>
 
                 {/* MARCA */}
-                <div className="text-xl text-gray-500 mb-3">
-                  {productoActivo.marca}
-                </div>
+<div className="mb-4">
+  <div className="text-gray-500 mb-1">
+    Nombre
+  </div>
 
-                {/* TITULO */}
-                <input
-                  disabled={!productoActivo.editando}
-                  value={productoActivo.nombre}
-                  onChange={(e) =>
-                    editarCampo(
-                      "nombre",
-                      e.target.value
-                    )
-                  }
-                  className="
-                    bg-transparent
-                    text-5xl
-                    font-black
-                    w-full
-                    outline-none
-                    text-[#5c3d2b]
-                    mb-6
-                  "
-                />
+  <input
+    disabled={!productoActivo.editando}
+    value={productoActivo.nombre}
+    onChange={(e) =>
+      editarCampo("nombre", e.target.value)
+    }
+    className="
+      bg-transparent
+      text-4xl
+      font-black
+      outline-none
+      text-[#4b3425]
+      w-full
+    "
+  />
+</div>
+
+<div className="mb-5">
+
+  <div className="text-gray-500 text-sm mb-2">
+    Categoría actual
+  </div>
+
+  <div
+    className="
+      inline-flex
+      items-center
+      gap-2
+      bg-amber-100
+      text-amber-800
+      px-4
+      py-2
+      rounded-full
+      font-semibold
+    "
+  >
+     {slug.replaceAll("-", " ")}
+  </div>
+
+</div>
+
+<div className="mb-4">
+  <div className="text-gray-500 mb-1">
+    Marca
+  </div>
+
+  <input
+    disabled={!productoActivo.editando}
+    value={productoActivo.marca || ""}
+    onChange={(e) =>
+      editarCampo("marca", e.target.value)
+    }
+    className="
+      bg-transparent
+      text-xl
+      outline-none
+      text-gray-600
+      w-full
+    "
+  />
+</div>
+
+<div className="mb-4">
+  <div className="text-gray-500 mb-1">
+    Código
+  </div>
+
+  <input
+    disabled={!productoActivo.editando}
+    value={productoActivo.codigo || ""}
+    onChange={(e) =>
+      editarCampo(
+        "codigo",
+        e.target.value
+      )
+    }
+    className="
+      bg-transparent
+      text-lg
+      font-bold
+      outline-none
+      text-[#4b3425]
+      w-full
+    "
+  />
+</div>
+
+<div className="mb-6">
+  <div className="text-gray-500 mb-2">
+    Imagen
+  </div>
+
+  {/* URL */}
+  <input
+    disabled={!productoActivo.editando}
+    value={productoActivo.imagen || ""}
+    onChange={(e) =>
+      editarCampo(
+        "imagen",
+        e.target.value
+      )
+    }
+    placeholder="https://..."
+    className="
+    w-full
+    border
+    border-gray-300
+    rounded-xl
+    p-3
+    mb-3
+    text-gray-800
+    placeholder:text-gray-500
+    "
+  />
+
+  {/* Archivo */}
+{productoActivo.editando && (
+  <label
+    className="
+      inline-flex
+      items-center
+      gap-2
+      bg-blue-600
+      hover:bg-blue-700
+      text-white
+      px-4
+      py-2
+      rounded-xl
+      cursor-pointer
+    "
+  >
+    <Plus size={18} />
+    Seleccionar imagen
+
+    <input
+      type="file"
+      accept="image/*"
+      onChange={subirImagen}
+      className="hidden"
+    />
+  </label>
+)}
+
+  {subiendoImagen && (
+    <p className="mt-2 text-blue-600">
+      Subiendo imagen...
+    </p>
+  )}
+</div>
 
                 {/* PRECIOS */}
                 <div className="mb-8">
-
-                  {productoActivo.precioAnterior && (
-
-                    <div
-                      className="
-                        text-2xl
-                        text-gray-400
-                        line-through
-                      "
-                    >
-                      $
-                      {(productoActivo.precio || 0)
-  .toLocaleString()}
-                    </div>
-
-                  )}
 
                   <div
                     className="
@@ -700,7 +1057,9 @@ cerrarModal();
                     p-8
                     shadow-md
                     mb-8
-                    space-y-5
+                    grid
+                    grid-cols-2
+                    gap-6
                   "
                 >
 
