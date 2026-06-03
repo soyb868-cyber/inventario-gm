@@ -8,7 +8,7 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "**",
       },
-      ],
+    ],
     dangerouslyAllowSVG: true,
   },
 };
@@ -19,9 +19,13 @@ export default withPWA({
   register: true,
   skipWaiting: true,
 
+  // Mejor compatibilidad con iOS
+  dynamicStartUrl: false,
+  cacheStartUrl: true,
+  reloadOnOnline: false,
+
   disable: process.env.NODE_ENV === "development",
 
-  // 🔥 IMPORTANTE: esto evita intentar cachear archivos internos de Next que en Vercel fallan
   buildExcludes: [
     /app-build-manifest\.json$/,
     /react-loadable-manifest\.json$/,
@@ -30,13 +34,23 @@ export default withPWA({
   ],
 
   runtimeCaching: [
-    // 🧠 API / Supabase (SIEMPRE online-first)
+    // Cachear navegación principal (/)
+    {
+      urlPattern: ({ request }: { request: Request }) =>
+        request.mode === "navigate",
+      handler: "CacheFirst",
+      options: {
+        cacheName: "pages",
+      },
+    },
+
+    // Supabase siempre online
     {
       urlPattern: /^https:\/\/.*supabase\.co\/.*/i,
       handler: "NetworkOnly",
     },
 
-    // 🌐 Todo lo demás (imágenes, assets externos)
+    // Assets externos
     {
       urlPattern: /^https?.*/i,
       handler: "NetworkFirst",
@@ -45,12 +59,12 @@ export default withPWA({
         networkTimeoutSeconds: 3,
         expiration: {
           maxEntries: 200,
-          maxAgeSeconds: 60 * 60 * 24 * 7, // 7 días
+          maxAgeSeconds: 60 * 60 * 24 * 7,
         },
       },
     },
 
-    // 🧱 Next static assets
+    // Archivos estáticos de Next
     {
       urlPattern: /\/_next\/static\//,
       handler: "CacheFirst",
@@ -62,4 +76,5 @@ export default withPWA({
         },
       },
     },
-  ],})(nextConfig);
+  ],
+})(nextConfig);
