@@ -13,50 +13,115 @@
 
 ## 📋 Descripción
 
-**Inventario GM** es una plataforma web desarrollada para la administración de materiales de construcción, maquinaria y productos relacionados con proyectos de obra civil.
+**Inventario GM** es una plataforma  desarrollada para facilitar la consulta y administración de información relacionada con materiales de construcción, maquinaria, productos y servicios ofrecidos por Grupo GM.
 
-La aplicación permite consultar inventario, gestionar productos, visualizar maquinaria y centralizar información operativa mediante una interfaz moderna, rápida y adaptable a dispositivos móviles.
+El sistema está especialmente pensado para su utilización durante visitas y recorridos en ruta, permitiendo que los colaboradores puedan consultar rápidamente información desde una computadora, tablet o teléfono celular mientras se encuentran con un cliente.
+
+La plataforma permite consultar información como:
+
+Precios de materiales.
+Existencias y disponibilidad.
+Características de productos.
+Especificaciones de maquinaria.
+Fichas técnicas en PDF.
+Productos de línea blanca.
+Información sobre servicios de electricidad.
+Información relacionada con la concretera.
+Catálogos organizados por categorías.
+
+De esta manera, el personal puede tener la información comercial y técnica disponible en un solo lugar, facilitando la atención al cliente y la consulta de productos durante las visitas.
+
+
+
+## Objetivo del Sistema
+
+El objetivo principal de Inventario GM es centralizar la información de productos, materiales, maquinaria y servicios para facilitar su consulta y administración.
+
+La plataforma busca:
+
+📱 Facilitar el acceso a la información desde dispositivos móviles.
+🔎 Reducir el tiempo necesario para localizar productos y precios.
+📦 Mantener organizada la información del inventario.
+🚜 Centralizar la información técnica de maquinaria.
+🧱 Facilitar la consulta de materiales de construcción.
+⚡ Mostrar información relacionada con servicios especializados.
+👥 Mejorar la atención al cliente durante las visitas en ruta.
+🏢 Proporcionar herramientas administrativas para la gestión interna.
 
 ---
 
 ## ✨ Características Principales
 
-### 📦 Gestión de Inventario
+### 📦 Inventario y Materiales
 
-- Consulta de existencias.
-- Organización por categorías.
-- Búsqueda rápida de productos.
-- Visualización de stock disponible.
+El sistema permite consultar diferentes categorías de materiales y productos:
 
-### 🧱 Catálogo de Productos
+Aceros.
+Agregados.
+Polvos para construcción.
+Block y prefabricados.
+Material eléctrico.
+Productos de concretera.
+Línea blanca.
+Otros productos relacionados con la construcción.
 
-- Aceros.
-- Agregados.
-- Polvos para construcción.
-- Block y prefabricados.
-- Material eléctrico.
-- Productos de concretera.
+Cada categoría puede contener información como:
 
-### 🚜 Maquinaria
+Nombre del producto.
+Código.
+Precio.
+Existencia.
+Descripción.
+Características.
+Información adicional.
 
-- Catálogo de maquinaria pesada.
-- Fichas técnicas en PDF.
-- Información detallada de equipos.
-- Consulta rápida de especificaciones.
 
-### ⚙️ ERP Interno
+### 🚜 Módulo dedicado a la consulta de maquinaria y equipo.
 
-- Panel administrativo.
-- Gestión de inventario.
-- Administración de registros.
-- Actualización de productos.
+Incluye:
 
-### 📱 Experiencia de Usuario
+Catálogo de maquinaria.
+Información detallada de equipos.
+Especificaciones técnicas.
+Descripciones.
+Fichas técnicas en formato PDF.
+Consulta rápida desde dispositivos móviles.
 
-- Diseño responsive.
-- Navegación optimizada.
-- Instalación como aplicación móvil (PWA).
-- Animaciones fluidas.
+### ⚡ Servicios
+
+La plataforma también concentra información sobre algunos de los servicios ofrecidos por la empresa.
+
+Entre ellos:
+
+Instalaciones eléctricas.
+Servicios relacionados con la concretera.
+Información y descripción de servicios.
+Datos necesarios para consulta durante visitas a clientes.
+
+### ⚙️ Administración
+
+El sistema cuenta con herramientas internas para administrar la información utilizada por la plataforma.
+
+Entre sus funciones se encuentran:
+
+Administración de productos.
+Gestión de inventario.
+Actualización de información.
+Organización por categorías.
+Gestión de registros.
+Consulta de información desde el panel administrativo.
+
+### 📱 Diseño Responsive y PWA
+
+La aplicación está diseñada para funcionar en diferentes dispositivos.
+
+Puede utilizarse desde:
+
+💻 Computadoras.
+📱 Teléfonos celulares.
+📲 Tablets.
+
+Además, cuenta con características de Progressive Web App (PWA), permitiendo instalar la aplicación como una aplicación en dispositivos compatibles.
 
 ---
 
@@ -77,10 +142,12 @@ La aplicación permite consultar inventario, gestionar productos, visualizar maq
 
 - Supabase
 - API Routes de Next.js
+Supabase es utilizado para la gestión de la base de datos y los servicios backend de la aplicación.
 
 ### Despliegue
 
 - Vercel
+La aplicación se encuentra desplegada mediante Vercel, permitiendo realizar actualizaciones y mantener disponible el sistema desde Internet.
 
 ---
 
@@ -90,22 +157,37 @@ La aplicación permite consultar inventario, gestionar productos, visualizar maq
 
 ![Página Principal](./public/images/home.png)
 
-### 📊 Inventario
+Página principal desde donde los usuarios pueden acceder a las diferentes categorías y módulos de información.
+
+### 📊 Inventario y Materiales
 
 ![Inventario](./public/images/inventario.png)
+
+Consulta de productos y materiales disponibles dentro de la plataforma.
 
 ### 🚜 Maquinaria
 
 ![Maquinaria](./public/images/maquinaria.png)
 
-### 📦 Productos
+Catálogo de maquinaria con información técnica y documentación disponible.
+
+### 📦 Linea Blanca
 
 ![Productos](./public/images/productos.png)
 
-### ⚙️ Panel Administrativo
+Consulta de productos pertenecientes a la categoría de línea blanca.
 
-![Panel Administrativo](./public/images/admin.png)
+### ⚙️ Electricidad
 
+![Panel Administrativo](./public/images/electricidad.png)
+
+Información relacionada con los servicios y productos del área eléctrica.
+
+### ⚙️ Concretera
+
+![Panel Administrativo](./public/images/concretera.png)
+
+Módulo destinado a mostrar información relacionada con los productos y servicios de la concretera.
 ---
 
 ## 📂 Estructura del Proyecto
