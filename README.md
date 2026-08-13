@@ -13,7 +13,7 @@
 
 ## 📋 Descripción
 
-**Inventario GM** es una plataforma web desarrollada para la administración de materiales de construcción, maquinaria y productos relacionados con proyectos de obra civil.
+**Inventario GM** es un sistema desarrollada para la administración de materiales de construcción, maquinaria y productos relacionados con proyectos de obra civil.
 
 La aplicación permite consultar inventario, gestionar productos, visualizar maquinaria y centralizar información operativa mediante una interfaz moderna, rápida y adaptable a dispositivos móviles.
 
